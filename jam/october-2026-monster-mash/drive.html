@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#101b28"><title>Night Ride · The proving ground</title></head>
+<body>
+  <main id="drive-app">
+    <canvas id="scene" aria-label="Night Ride 3D driving view"></canvas>
+    <header class="drive-header"><a href="./" class="wordmark">↗ NIGHT RIDE</a><span class="location">THE PROVING GROUND <i>01 / HANDLING STUDY</i></span><button id="pause" disabled>Pause <kbd>P</kbd></button></header>
+    <div class="route-card"><span class="eyebrow">A LITTLE ROAD TO YOURSELF</span><h1>The lakeside loop</h1><p id="route-cue">Asphalt · gravel · a rise in the road</p></div>
+    <section class="start-card" id="overlay" aria-labelledby="overlay-title">
+      <span class="eyebrow">NIGHT RIDE / FIRST DRIVE</span><h2 id="overlay-title">Take the long way.</h2>
+      <p id="overlay-copy">One car, a quiet lake, and 646 metres of road. Settle into the corners. Feel the gravel. Find your way back.</p>
+      <div class="control-guide"><span><kbd>W A S D</kbd> or arrows · drive &amp; brake</span><span><kbd>Space</kbd> handbrake &nbsp; <kbd>V</kbd> reverse gear</span><span><kbd>R</kbd> recover &nbsp; <kbd>P</kbd> pause</span><span>Controller: stick · RT/LT · A handbrake</span><span>X recover · Y reverse · Menu pause</span></div>
+      <button id="start" class="primary" disabled>Loading the car…</button>
+      <p id="drive-status" role="status">Starting the driving simulation.</p>
+      <a href="./" class="atlas-link">Explore seed worlds ↗</a>
+    </section>
+    <aside class="map-card" aria-label="Test road map"><canvas id="minimap" width="160" height="210" aria-label="Position on the loop"></canvas><span>AUTHORED TEST LOOP</span></aside>
+    <div class="drive-bottom">
+      <div class="lap-card"><span class="eyebrow">EASY DOES IT</span><strong id="lap-label">Your first lap</strong><span id="lap-time">0:00.0</span><span id="last-lap"></span></div>
+      <div class="instrument"><span id="gear">D1</span><strong id="speed">0</strong><span class="unit">KM/H</span><div class="rpm-track"><i id="rpm-bar"></i></div><span id="surface">ASPHALT</span></div>
+    </div>
+    <nav class="drive-tools" aria-label="Driving tools"><button id="recover" disabled>Recover <kbd>R</kbd></button><button id="reverse" aria-pressed="false" disabled>Reverse <kbd>V</kbd></button><button id="audio" aria-pressed="true">Sound on</button><button id="diagnostics" aria-expanded="false">Telemetry</button><a href="./world.html">3D seed world ↗</a></nav>
+    <section id="telemetry" hidden aria-label="Driving telemetry"><h2>Handling telemetry</h2><pre id="telemetry-values"></pre><p>Authored test road. Seeded driving worlds come next.</p><button id="restart">Restart lap session</button></section>
+    <div id="touch-controls" aria-label="Touch driving controls"><div><button data-control="left" aria-label="Steer left">←</button><button data-control="right" aria-label="Steer right">→</button></div><div><button data-control="brake">Brake</button><button data-control="throttle">Go</button></div></div>
+  </main><script type="module" src="/web/drive.ts"></script>
+</body></html>

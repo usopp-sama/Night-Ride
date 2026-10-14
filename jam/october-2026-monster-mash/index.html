@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1419" />
+  <meta name="description" content="Night Ride — a seeded night world, built in C++. Explore the first route generator." />
+  <title>Night Ride · World Explorer</title>
+</head>
+<body>
+  <div id="app">
+    <header class="masthead"><a class="brand" href="./" aria-label="Night Ride home"><span class="brand-mark">↗</span> NIGHT RIDE</a><span class="edition">FIELD NOTES <span>01 / WORLD GENERATION</span></span><span class="build-badge">PRE-ALPHA</span></header>
+    <main>
+      <section class="intro"><div><p class="eyebrow">THE ROAD BEGINS WITH A SEED</p><h1>A different night.<br><em>The same way home.</em></h1><p class="intro-copy">One seed, one small world. Trace the quiet roads,<br class="desktop-break"> find the detours, and see where the night takes you.</p></div><div class="intro-note"><span class="tiny-moon"></span><span>OCTOBER 2026<br>THE MOONLIT RUN</span></div></section>
+      <section class="workspace" aria-label="Seed explorer">
+        <aside class="controls">
+          <div class="panel-heading"><span class="eyebrow">PLAN A JOURNEY</span><span class="number">01</span></div>
+          <form id="seed-form"><label for="seed">World seed</label><input id="seed" name="seed" value="moonlit-run" maxlength="128" autocomplete="off" spellcheck="false" aria-describedby="seed-help" /><p id="seed-help" class="help">A word, a memory, a place. Same seed, same roads.</p><button id="generate" type="submit" disabled>Trace this world <span>↗</span></button><button id="random" class="secondary" type="button" disabled>Surprise me <span>⤨</span></button></form>
+          <div class="seed-library"><p class="eyebrow">EXPLORATION SEEDS</p><div id="presets"><button type="button" data-seed="moonlit-run" disabled>Moonlit run</button><button type="button" data-seed="last-light" disabled>Last light</button><button type="button" data-seed="silent-relay" disabled>Silent relay</button><button type="button" data-seed="salt-and-pine" disabled>Salt &amp; pine</button><button type="button" data-seed="home-before-dawn" disabled>Before dawn</button></div></div>
+          <div class="scope-note"><span>↳</span><p><a id="world-link" class="test-drive-link" href="./world.html">See this seed in 3D →</a><br><a class="test-drive-link" href="./drive.html">Take a test drive →</a></p></div>
+        </aside>
+        <section class="map-panel" aria-label="Generated world map"><div class="map-top"><div><span class="eyebrow">REGION ATLAS</span><h2 id="region-title">Finding the road…</h2></div><span id="weather" class="weather">—</span></div><div class="map-canvas"><svg id="map" viewBox="0 0 960 540" role="img" aria-label="Route map loading"></svg><div class="compass" aria-hidden="true"><span>N</span>↑</div><div class="map-stamp" aria-hidden="true">NR / SURVEY 001<br>SCHEMATIC · NOT TO SCALE</div></div><div class="map-bottom"><div class="legend"><span><i class="line"></i>Main road</span><span><i class="line branch"></i>Detour</span><span><i class="dot"></i>Landmark</span></div><span id="graph-status">C++ core loading</span></div></section>
+      </section>
+      <section class="readout" aria-label="World statistics"><div><span class="eyebrow">MAIN ROUTE</span><strong id="distance">—</strong><small>graph distance / before road smoothing</small></div><div><span class="eyebrow">PLACES TO FIND</span><strong id="places">—</strong><small>landmarks along reconnecting detours</small></div><div><span class="eyebrow">WORLD FINGERPRINT</span><strong id="hash" class="hash">—</strong><small id="version">generator loading</small></div><div class="status-cell"><span class="eyebrow">GENERATOR CHECK</span><strong id="validation">Loading</strong><small id="timing">Starting WebAssembly</small></div></section>
+      <p id="status" role="status" aria-live="polite">Loading the C++ world generator…</p>
+      <details id="manifest-details"><summary>Under the hood <span>C++ manifest / developer view</span></summary><pre id="manifest">No manifest yet.</pre></details>
+    </main><footer><span>A SMALL WORLD. A LONG NIGHT.</span><span>Built from a seed · C++ → WebAssembly</span></footer>
+  </div><script type="module" src="/web/main.ts"></script>
+</body>
+</html>
+

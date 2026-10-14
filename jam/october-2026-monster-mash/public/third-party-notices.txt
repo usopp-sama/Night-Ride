@@ -1,0 +1,33 @@
+Three.js 0.180.0 — https://github.com/mrdoob/three.js
+
+The MIT License
+
+Copyright © 2010-2025 three.js authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+engine-sim (vendored core simulation) - Copyright 2022 Ange Yaghi - MIT - licenses/engine-sim.txt
+simple-2d-constraint-solver - Copyright 2022 Ange Yaghi - MIT - licenses/simple-2d-constraint-solver.txt
+@dgreenheck/ez-tree 1.1.0 - Copyright 2024 Daniel Greenheck - MIT - licenses/ez-tree.txt (bark textures: Poly Haven / texturecan, CC0; rock models from the ez-tree repository)
+Draco decoder - Google - Apache-2.0 - licenses/draco.txt
+Poly Haven textures - CC0 - licenses/poly-haven.txt
+Kenney Nature Kit - CC0 - licenses/kenney-nature.txt
+Ferrari 458 Italia model by vicent091036, distributed with the three.js examples. Original Sketchfab listing is offline; license could not be re-verified (believed CC-BY). VERIFY BEFORE PUBLIC RELEASE.
+Camaro SS LP by Mihail Burduja (poly.pizza) - CC-BY 3.0
+three.js water normal map (textures/waternormals.jpg) - three.js examples, MIT

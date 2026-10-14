@@ -1,0 +1,1 @@
+Draco decoder (draco/) - Copyright Google, Apache License 2.0 - https://github.com/google/draco

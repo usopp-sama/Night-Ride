@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d1726"><title>Night Ride · Seeded landscapes</title></head>
+<body><canvas id="world-canvas" aria-label="Generated 3D landscape"></canvas>
+<header><a href="./">↗ NIGHT RIDE</a><span>LANDSCAPE STUDY / 02</span><a href="./drive.html">Drive the test loop ↗</a></header>
+<section class="world-title"><span class="eyebrow">SOMEWHERE BETWEEN HERE AND HOME</span><h1>A road of your own.</h1><p id="world-description">Loading the landscape…</p></section>
+<aside class="world-map"><canvas id="world-map" width="210" height="280" aria-label="Generated route overview"></canvas><span id="world-hash"></span></aside>
+<section class="world-panel"><form id="world-form"><label for="world-seed">WORLD SEED</label><div class="seed-row"><input id="world-seed" value="moonlit-run" maxlength="128"><button id="world-build" disabled>Build this world ↗</button></div></form>
+<label for="world-car" class="car-label">CAR &amp; ENGINE</label><select id="world-car" aria-describedby="car-credit"></select>
+<nav><button id="tour" disabled>Tour the road</button><button id="overview" disabled>See whole region</button><button id="close-view" disabled>Back to the car</button><button id="world-audio" aria-pressed="false">Engine sound</button></nav>
+<p id="world-status" role="status">Loading C++, the car and the forest kit…</p><p class="hint">Drag to look around · scroll to zoom. Guided tour is a visual preview, not driving physics.</p>
+<details><summary>Assets &amp; engine audio</summary><p><span id="car-credit"></span>. Trees grown per seed with <a href="https://github.com/dgreenheck/ez-tree">EZ-Tree</a> by Dan Greenheck (MIT). Ground, road and shore textures from <a href="https://polyhaven.com">Poly Haven</a> (CC0). Water shader from three.js (MIT).</p><p>Engine sound is <a href="https://github.com/ange-yaghi/engine-sim">engine-sim</a> by Ange Yaghi (MIT): its combustion, gas-flow and exhaust simulation of the real engine definition runs in WebAssembly, held at the car's RPM by engine-sim's own dynamometer. <a href="./licenses/engine-sim.txt">License</a></p></details></section>
+<script type="module" src="/web/world-view.ts"></script></body></html>

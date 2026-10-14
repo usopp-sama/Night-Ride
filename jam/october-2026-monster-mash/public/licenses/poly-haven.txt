@@ -1,0 +1,1 @@
+Textures in textures/ (sparse_grass, forest_leaves_04, aerial_grass_rock, coast_sand_01, asphalt_02, gravel_road) are from Poly Haven (https://polyhaven.com), CC0 1.0 public domain.

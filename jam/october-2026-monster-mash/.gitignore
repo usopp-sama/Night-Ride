@@ -1,0 +1,13 @@
+node_modules/
+build/
+dist/
+public/wasm/
+test-results/
+playwright-report/
+.env*
+!.env.example
+.DS_Store
+
+# Fetched by scripts/fetch-assets.mjs (third-party license not re-verified; not redistributed)
+public/models/ferrari-458.glb
+public/models/ferrari-458-ao.png
