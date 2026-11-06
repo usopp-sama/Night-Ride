@@ -9,4 +9,6 @@ Earlier planning documents are also available:
 - [Architecture review and roadmap](docs/Night-Drive-Review-and-Roadmap.md)
 - [Story handoff](docs/Night-Drive-Story-Handoff.md)
 
-The documents describe the intended game and prototype gates. This repository does not yet contain a playable game.
+The documents describe the intended game and prototype gates.
+
+On the `codex/solar-expedition` branch, [Orbit Run](games/orbit-run/README.md) preserves the playable solar-system rocket prototype as the starting checkpoint for a separate browser-game idea, provisionally titled **The Third Ring**.
