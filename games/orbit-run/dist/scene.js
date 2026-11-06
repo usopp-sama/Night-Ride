@@ -1,15 +1,15 @@
 import * as THREE from './vendor/three.module.js';
-import {PLANETS,CHECKPOINTS,orbitalPosition} from './simulation.js';
+import {PLANETS,CHECKPOINTS,orbitalPosition,orbitalNormal,AU,SYSTEM_RADIUS,SUN_RADIUS} from './simulation.js';
 export {THREE};
 export function makeWorld(container){
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.setClearColor(0x040913);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;container.appendChild(renderer.domElement);
- const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.15,10000);
+ const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.5,SYSTEM_RADIUS*3);
  scene.add(new THREE.HemisphereLight(0xaccaff,0x1a1f2b,2));const key=new THREE.DirectionalLight(0xffe0b0,3);key.position.set(-20,35,40);scene.add(key);const rim=new THREE.DirectionalLight(0x72caff,2.2);rim.position.set(10,5,-20);scene.add(rim);
  let seed=1129;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
- const starPositions=[],starColors=[];for(let i=0;i<3800;i++){const a=rand()*Math.PI*2,u=rand()*2-1,r=3800+rand()*1000,s=Math.sqrt(1-u*u);starPositions.push(Math.cos(a)*s*r,u*r,Math.sin(a)*s*r);const c=new THREE.Color().setHSL(.5+rand()*.18,.12+rand()*.2,.45+rand()*.4);starColors.push(c.r,c.g,c.b)}const stars=new THREE.BufferGeometry();stars.setAttribute('position',new THREE.Float32BufferAttribute(starPositions,3));stars.setAttribute('color',new THREE.Float32BufferAttribute(starColors,3));scene.add(new THREE.Points(stars,new THREE.PointsMaterial({size:3,vertexColors:true,sizeAttenuation:true})));
- const sun=new THREE.Mesh(new THREE.SphereGeometry(60,48,32),new THREE.MeshBasicMaterial({color:0xffd587}));scene.add(sun);
+ const starPositions=[],starColors=[];for(let i=0;i<3800;i++){const a=rand()*Math.PI*2,u=rand()*2-1,r=SYSTEM_RADIUS*1.7+rand()*10000,s=Math.sqrt(1-u*u);starPositions.push(Math.cos(a)*s*r,u*r,Math.sin(a)*s*r);const c=new THREE.Color().setHSL(.5+rand()*.18,.12+rand()*.2,.45+rand()*.4);starColors.push(c.r,c.g,c.b)}const stars=new THREE.BufferGeometry();stars.setAttribute('position',new THREE.Float32BufferAttribute(starPositions,3));stars.setAttribute('color',new THREE.Float32BufferAttribute(starColors,3));const starfield=new THREE.Points(stars,new THREE.PointsMaterial({size:1.3,vertexColors:true,sizeAttenuation:false,depthWrite:false}));scene.add(starfield);
+ const sun=new THREE.Mesh(new THREE.SphereGeometry(SUN_RADIUS,48,32),new THREE.MeshBasicMaterial({color:0xffd587}));scene.add(sun);
  const glowMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.AdditiveBlending,uniforms:{tint:{value:new THREE.Color(0xff9b36)},alpha:{value:.8}},vertexShader:'varying vec3 n; varying vec3 v; void main(){vec4 p=modelViewMatrix*vec4(position,1.);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',fragmentShader:'varying vec3 n;varying vec3 v;uniform vec3 tint;uniform float alpha;void main(){float f=pow(1.-abs(dot(n,v)),3.);gl_FragColor=vec4(tint,f*alpha);}'});
- const corona=new THREE.Mesh(new THREE.SphereGeometry(65,48,32),glowMaterial);scene.add(corona);
+ const corona=new THREE.Mesh(new THREE.SphereGeometry(SUN_RADIUS*1.1,48,32),glowMaterial);scene.add(corona);
  const noise=`float hash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}float fbm(vec3 p){return noise(p)*.55+noise(p*2.1)*.27+noise(p*4.3)*.13+noise(p*8.7)*.05;}`;
  const planetMaterial=p=>new THREE.ShaderMaterial({uniforms:{base:{value:new THREE.Color(p.color)},kind:{value:p.kind},time:{value:0}},vertexShader:'varying vec3 vP;varying vec3 vN;varying vec3 wP;void main(){vP=position;vN=normalize(mat3(modelMatrix)*normal);wP=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`uniform vec3 base;uniform float kind;uniform float time;varying vec3 vP;varying vec3 vN;varying vec3 wP;${noise}void main(){vec3 p=normalize(vP);float n=fbm(p*9.);vec3 c=base*(.55+n*.8);if(kind==2.){float land=fbm(p*4.+vec3(8,1,3));c=mix(vec3(.025,.17,.38),mix(vec3(.13,.31,.17),vec3(.4,.45,.22),n),smoothstep(.5,.54,land));float clouds=smoothstep(.64,.78,fbm(p*11.+vec3(time*.01,0,0)));c=mix(c,vec3(.85,.92,.98),clouds*.8);c=mix(c,vec3(.85,.93,.97),smoothstep(.86,.96,abs(p.y)));}if(kind==4.||kind==1.){float bands=sin(p.y*65.+fbm(p*9.)*8.);c=base*(.65+.22*bands+.26*n);if(kind==4.){float storm=exp(-80.*((p.y+.2)*(p.y+.2)+(p.x-.6)*(p.x-.6)));c=mix(c,vec3(.6,.23,.12),storm*.7);}}if(kind==3.)c=mix(vec3(.3,.1,.06),base,smoothstep(.2,.8,n));if(kind==5.)c=base*(.65+.2*sin(p.y*26.+n*2.)+.2*n);float light=max(0.,dot(normalize(vN),normalize(-wP)));c*=.16+light*.95;gl_FragColor=vec4(c,1.);}`});
  const planets=PLANETS.map(p=>{const root=new THREE.Group(),surface=new THREE.Mesh(new THREE.SphereGeometry(p.radius,64,40),planetMaterial(p));root.add(surface);const atmosMat=glowMaterial.clone();atmosMat.uniforms={tint:{value:new THREE.Color(p.color)},alpha:{value:.6}};root.add(new THREE.Mesh(new THREE.SphereGeometry(p.radius*1.045,48,32),atmosMat));if(p.rings){const ring=new THREE.Mesh(new THREE.RingGeometry(p.radius*1.32,p.radius*2.12,140),new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,uniforms:{color:{value:new THREE.Color(p.color)},radius:{value:p.radius}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform vec3 color;uniform float radius;varying vec3 p;void main(){float r=length(p.xy)/radius;float band=.48+.2*sin(r*160.);float gap=1.-smoothstep(.0,.026,abs(r-1.72));gl_FragColor=vec4(color,band*(1.-gap));}'}));ring.rotation.x=p.id==='uranus'?.38:1.27;ring.rotation.y=.18;root.add(ring)}scene.add(root);const orbitPoints=Array.from({length:193},(_,i)=>new THREE.Vector3(Math.cos(i/192*Math.PI*2)*p.orbit,-.3,Math.sin(i/192*Math.PI*2)*p.orbit));scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(orbitPoints),new THREE.LineBasicMaterial({color:0x608199,transparent:true,opacity:.1})));return {...p,root,surface,previous:new THREE.Vector3()}});
@@ -36,14 +36,55 @@ export function makeWorld(container){
   const strut=mesh(new THREE.CylinderGeometry(.09,.09,1.2,8),dark,[side*1,-.9,.7],gear);strut.rotation.z=side*.3;mesh(new THREE.BoxGeometry(.5,.13,.85),dark,[side*1.18,-1.5,.7],gear);
  }mesh(new THREE.CylinderGeometry(.08,.08,.9,8),dark,[0,-.9,-1.9],gear);mesh(new THREE.BoxGeometry(.42,.12,.75),dark,[0,-1.4,-1.9],gear);gear.visible=false;
  const rockGeos=Array.from({length:4},()=>{const g=new THREE.IcosahedronGeometry(1,1),p=g.attributes.position;for(let i=0;i<p.count;i++){const s=.8+rand()*.4;p.setXYZ(i,p.getX(i)*s,p.getY(i)*s,p.getZ(i)*s)}g.computeVertexNormals();return g});const rockMat=new THREE.MeshStandardMaterial({color:0x666875,roughness:1,flatShading:true}),rocks=[];
- function rock(pos,r){const m=new THREE.Mesh(rockGeos[Math.floor(rand()*4)],rockMat);m.position.copy(pos);m.scale.setScalar(r);m.rotation.set(rand()*6,rand()*6,rand()*6);scene.add(m);rocks.push({mesh:m,radius:r*.92});return m}
- for(let i=0;i<230;i++){const a=rand()*Math.PI*2,r=495+rand()*78;rock(new THREE.Vector3(Math.cos(a)*r,(rand()-.5)*48,Math.sin(a)*r),1.5+rand()*5)}
- const checkpoints=CHECKPOINTS.map(c=>{const center=new THREE.Vector3(...c.position),normal=new THREE.Vector3(...c.normal),root=new THREE.Group();root.position.copy(center);root.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);scene.add(root);const material=new THREE.MeshBasicMaterial({color:0xdbff80});const ring=new THREE.Mesh(new THREE.TorusGeometry(9,.26,10,72),material);root.add(ring);const glow=new THREE.Mesh(new THREE.TorusGeometry(9,.65,8,64),new THREE.MeshBasicMaterial({color:0xdbff80,transparent:true,opacity:.09,depthWrite:false}));root.add(glow);const frame=new THREE.Mesh(new THREE.TorusGeometry(10.2,.8,6,12),dark);root.add(frame);for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const p=new THREE.Vector3(Math.cos(a)*15,Math.sin(a)*15,(rand()-.5)*5).applyQuaternion(root.quaternion).add(center);rock(p,2+rand()*2.5)}return {...c,center,normal,root,ring,active:false,radius:9}});
+
+ // A sparse main belt, drawn in one call. Collision data is kept separately.
+ const beltCount=1200,belt=new THREE.InstancedMesh(rockGeos[0],rockMat,beltCount),dummy=new THREE.Object3D();
+ for(let i=0;i<beltCount;i++){
+  const a=rand()*Math.PI*2,r=(2.1+rand()*1.2)*AU,size=3+rand()*10;
+  dummy.position.set(Math.cos(a)*r,(rand()-.5)*180,Math.sin(a)*r);
+  dummy.rotation.set(rand()*6,rand()*6,rand()*6);dummy.scale.setScalar(size);dummy.updateMatrix();
+  belt.setMatrixAt(i,dummy.matrix);rocks.push({center:dummy.position.clone(),radius:size*1.2});
+ }belt.instanceMatrix.needsUpdate=true;scene.add(belt);
+ const gateGeometry=new THREE.TorusGeometry(24,.6,8,48),frameGeometry=new THREE.TorusGeometry(26,1.4,6,16);
+ const panelGeometry=new THREE.BoxGeometry(16,.5,8),tankGeometry=new THREE.CylinderGeometry(3,3,12,8);
+ const panelMaterial=new THREE.MeshStandardMaterial({color:0x204867,metalness:.6,roughness:.4});
+ const checkpoints=CHECKPOINTS.map(c=>{
+  const center=new THREE.Vector3(),normal=new THREE.Vector3(),root=new THREE.Group();scene.add(root);
+  const material=new THREE.MeshBasicMaterial({color:0xdbff80}),ring=new THREE.Mesh(gateGeometry,material);root.add(ring);
+  root.add(new THREE.Mesh(frameGeometry,dark));
+  // Keep the docking aperture clear; the rock and refinery sit to one side.
+  const bodyOffset=new THREE.Vector3(-c.bodyRadius-38,-18,0);
+  const body=new THREE.Mesh(rockGeos[0],rockMat);body.position.copy(bodyOffset);body.scale.setScalar(c.bodyRadius);root.add(body);
+  for(const side of [-1,1]){
+   const panel=new THREE.Mesh(panelGeometry,panelMaterial);panel.position.set(side*29,-20,4);root.add(panel);
+   const tank=new THREE.Mesh(tankGeometry,white);tank.position.set(side*20,-20,0);root.add(tank);
+  }
+  const light=new THREE.Mesh(new THREE.SphereGeometry(1.4,8,6),lightMat);light.position.set(0,27,0);root.add(light);
+  return {...c,center,normal,root,ring,active:false,previous:new THREE.Vector3(),bodyOffset,bodyCenter:new THREE.Vector3(),previousBodyCenter:new THREE.Vector3()};
+ });
  const pad=new THREE.Group();scene.add(pad);pad.visible=false;const disk=mesh(new THREE.CylinderGeometry(7,7.6,.55,48),dark,[0,0,0],pad);const landingCircle=mesh(new THREE.TorusGeometry(5.5,.09,6,64),lightMat,[0,.3,0],pad);landingCircle.rotation.x=Math.PI/2;mesh(new THREE.BoxGeometry(.4,.02,3),white,[-.9,.3,0],pad);mesh(new THREE.BoxGeometry(.4,.02,3),white,[.9,.3,0],pad);mesh(new THREE.BoxGeometry(1.8,.02,.4),white,[0,.3,0],pad);
  const trailGeo=new THREE.BufferGeometry(),trailArray=new Float32Array(180*3);trailGeo.setAttribute('position',new THREE.BufferAttribute(trailArray,3));const trail=new THREE.Points(trailGeo,new THREE.PointsMaterial({size:.16,color:0x65dfff,transparent:true,opacity:.5,depthWrite:false}));scene.add(trail);trail.frustumCulled=false;let trailIndex=0;
  function resetTrail(){for(let i=0;i<180;i++)ship.position.toArray(trailArray,i*3);trailGeo.attributes.position.needsUpdate=true}
- function updatePlanets(t){for(const p of planets){p.previous.copy(p.root.position);const v=orbitalPosition(p,t);p.root.position.set(v.x,v.y,v.z);p.surface.rotation.y=t*.035;p.surface.material.uniforms.time.value=t}}
- function animate(t,speed,boost,landed){model.rotation.z=THREE.MathUtils.lerp(model.rotation.z,model.userData.bank||0,.1);for(const f of flames){f.visible=!landed;f.scale.set(1,1,(boost?2.2:.4+speed/65)*(1+Math.sin(t*60)*.08))}gear.visible=landed;trail.visible=!landed&&speed>8;if(trail.visible){for(const side of [-1,1]){const point=new THREE.Vector3(side*1.48,-.12,3).applyQuaternion(ship.quaternion).add(ship.position);point.toArray(trailArray,(trailIndex++%180)*3)}trailGeo.attributes.position.needsUpdate=true}key.position.copy(ship.position).add(new THREE.Vector3(-20,35,40));key.target.position.copy(ship.position);rim.position.copy(ship.position).add(new THREE.Vector3(10,5,-20));rim.target.position.copy(ship.position);scene.add(key.target,rim.target)}
+ function updatePlanets(t){
+  for(const p of planets){p.previous.copy(p.root.position);const v=orbitalPosition(p,t);p.root.position.set(v.x,v.y,v.z);p.surface.rotation.y=t*.035;p.surface.material.uniforms.time.value=t}
+  for(const c of checkpoints){
+   c.previous.copy(c.center);c.previousBodyCenter.copy(c.bodyCenter);const v=orbitalPosition(c,t);c.center.set(v.x,v.y,v.z);c.normal.copy(orbitalNormal(c,t));
+   c.root.position.copy(c.center);c.root.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),c.normal);
+   c.bodyCenter.copy(c.bodyOffset).applyQuaternion(c.root.quaternion).add(c.center);
+  }
+ }
+ function animate(t,speed,boost,landed){
+  model.rotation.z=THREE.MathUtils.lerp(model.rotation.z,model.userData.bank||0,.1);
+  for(const f of flames){f.visible=!landed;f.scale.set(1,1,Math.min(3.5,boost?2.2:.4+speed/100)*(1+Math.sin(t*60)*.08))}
+  gear.visible=landed;trail.visible=!landed&&speed>8;
+  if(trail.visible){for(const side of [-1,1]){const point=new THREE.Vector3(side*1.48,-.12,3).applyQuaternion(ship.quaternion).add(ship.position);point.toArray(trailArray,(trailIndex++%180)*3)}trailGeo.attributes.position.needsUpdate=true}
+  // Distant depots remain in navigation, but do not submit hundreds of refinery draw calls.
+  for(const c of checkpoints)c.root.visible=c.center.distanceToSquared(ship.position)<6000**2;
+  starfield.position.copy(camera.position);
+  key.position.copy(ship.position).add(new THREE.Vector3(-20,35,40));key.target.position.copy(ship.position);
+  rim.position.copy(ship.position).add(new THREE.Vector3(10,5,-20));rim.target.position.copy(ship.position);
+ }
+ scene.add(key.target,rim.target);
  function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
  updatePlanets(0);return {renderer,scene,camera,ship,model,planets,rocks,checkpoints,pad,updatePlanets,animate,resize,resetTrail};
 }

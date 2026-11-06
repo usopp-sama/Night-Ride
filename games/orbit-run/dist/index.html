@@ -1,13 +1,76 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#070d18"><meta name="description" content="Explore a living solar system in your Kestrel spacecraft. Chase orbiting planets, find asteroid checkpoints, land, and take off."><title>ORBIT RUN — Solar Explorer</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090f1a'/%3E%3Cpath d='M8 23L16 5l8 18-8-4z' fill='%23d9ff7a'/%3E%3C/svg%3E"><link rel="stylesheet" href="style.css"></head><body>
-<main id="game"><div id="space" aria-label="Three-dimensional solar system"></div><div class="vignette"></div><header><div class="brand"><span class="brandmark">↗</span> ORBIT<span>RUN</span><small>SOLAR EXPLORER</small></div><div class="sector">SOL SYSTEM <i></i> FREE FLIGHT</div><nav><button id="map-button" class="icon-button">◎ <span>System map</span> <kbd>M</kbd></button><button id="sound" class="icon-button" aria-label="Turn sound on">♪ <span id="sound-label">OFF</span></button><button id="pause" class="icon-button" aria-label="Pause flight" hidden>Ⅱ</button></nav></header>
-<section id="menu" class="menu"><div class="eyebrow">EIGHT WORLDS. YOUR OWN COURSE.</div><h1>The system<br>is <em>yours.</em></h1><p>Chase worlds in motion. Find a place to land.<br>Take the long way home.</p><button id="launch" class="primary">Begin expedition <span>↗</span></button><div class="launch-note">ENTER TO LAUNCH · M TO EXPLORE THE MAP</div><div class="ship-caption"><span>YOUR SHIP</span><strong>KESTREL <small>MK. II</small></strong><p>Twin-engine explorer / vector thrust</p></div></section>
-<div id="flight-ui" hidden><aside class="mission"><div class="eyebrow">EXPEDITION LOG</div><h3><span id="visited-count">0</span> / 8 worlds visited</h3><div class="world-dots" id="world-dots"></div><p id="objective">First stop: catch Earth and land.</p><div class="checkpoint-note" id="checkpoint-note">Checkpoint: Earth departure orbit</div></aside>
-<aside class="nav-card"><span class="label">TRACKING</span><div class="target-heading"><h2 id="target-name">Earth</h2><button id="change-target" aria-label="Change destination">↗</button></div><div class="target-metrics"><div><span class="label">RANGE</span><strong id="target-range">0</strong></div><div><span class="label">RELATIVE SPEED</span><strong id="relative-speed">0</strong></div></div><p id="nav-hint">Aim for the diamond to intercept.</p><button id="align" class="text-button">Align with intercept <kbd>R</kbd></button><div class="mini-wrap"><canvas id="minimap" width="260" height="210" aria-label="Live solar system map"></canvas><button id="expand-map">Open system map ↗</button></div></aside>
-<div id="target-marker" class="target-marker" hidden><span class="bracket"></span><b id="marker-name">EARTH</b><small id="marker-distance"></small></div><div id="lead-marker" class="lead-marker" hidden><i></i><span>INTERCEPT</span></div><div id="direction" class="direction" hidden>↗ <span>EARTH</span></div><div class="crosshair"><span></span></div>
-<div class="interaction" id="interaction" hidden><div><strong id="interaction-title">Ready to land</strong><p id="interaction-detail">Match orbital speed, then deploy landing gear.</p></div><button id="land" class="primary">Land <kbd>F</kbd></button></div></div>
-<section id="landing-panel" class="landing-panel" hidden><div class="eyebrow" id="landed-type">OCEAN WORLD</div><h2 id="landed-name">Earth</h2><p id="landed-description"></p><div class="landed-status">✓ HULL REPAIRED &nbsp; / &nbsp; FUEL RESTORED</div><button id="takeoff" class="primary">Take off <span>↑</span></button><button id="next-world" class="secondary">Choose your next destination ↗</button></section>
-<footer><div class="controls"><span><kbd>W A S D</kbd> Steer</span><span><kbd>Q / E</kbd> Throttle</span><span><kbd>SPACE</kbd> Boost</span><span><kbd>SHIFT</kbd> Brake</span><span><kbd>F</kbd> Land</span></div><div class="telemetry"><div><span class="label">SPEED</span><strong id="velocity">0 <small>U/S</small></strong></div><div class="meter"><span class="label">HULL <b id="health-value">100%</b></span><div class="bar"><span id="health-fill"></span></div><span class="label">BOOST <b id="boost-value">100%</b></span><div class="bar"><span id="boost-fill"></span></div></div><div class="throttle"><span class="label">THROTTLE</span><strong id="throttle-value">40%</strong></div></div></footer>
-<div id="toast" class="toast" aria-live="polite"></div><div id="flash"></div><div class="touch-controls" id="touch" hidden><div id="joystick" aria-label="Drag to steer"><div id="stick"></div></div><div class="touch-actions"><button id="touch-brake">BRAKE</button><button id="touch-boost">BOOST</button></div></div>
-<dialog id="map-dialog"><div class="map-head"><div><span class="eyebrow">NAVIGATION / SOL SYSTEM</span><h2>Pick your next horizon.</h2></div><button id="close-map" class="close" aria-label="Close system map">✕</button></div><div class="map-layout"><div class="map-viewport"><canvas id="system-map" aria-label="Solar system map. Select a destination using the planet buttons."></canvas><div class="map-legend"><span class="legend-ship">▲ YOUR SHIP</span><span>◇ ASTEROID CHECKPOINT</span><span>○ PLANET ORBIT</span></div></div><div class="planet-list" id="planet-list"></div></div><div class="map-foot"><span>Orbits and distances compressed for flight. Gas and ice giants have atmospheric landing platforms.</span><span id="map-flight-status">FLIGHT PAUSED</span></div></dialog>
-<dialog id="pause-dialog"><div class="pause-panel"><span class="eyebrow">EXPEDITION ON HOLD</span><h2 id="pause-title">A moment<br>among the stars.</h2><p id="pause-text">Your journey will be here when you return.</p><button id="resume" class="primary">Resume expedition <span>↗</span></button><button id="respawn" class="secondary">Return to checkpoint</button></div></dialog>
-<div id="error" hidden><h2>Unable to start the flight</h2><p>This game needs WebGL. Try a browser with hardware acceleration enabled.</p></div></main><script type="module" src="game.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070d18">
+  <meta name="description" content="Depart Mars and explore a much larger solar system. Plot routes, intercept moving planets, and refuel at orbital asteroid depots.">
+  <title>ORBIT RUN — Solar Explorer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090f1a'/%3E%3Cpath d='M8 23L16 5l8 18-8-4z' fill='%23d9ff7a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="game">
+  <div id="space" aria-label="Three-dimensional solar system"></div><div class="vignette"></div>
+  <header>
+    <div class="brand"><span class="brandmark">↗</span> ORBIT<span>RUN</span><small>SOLAR EXPLORER</small></div>
+    <div class="sector">SOL SYSTEM <i></i> DEEP SPACE</div>
+    <nav aria-label="Flight controls">
+      <button id="cruise" class="icon-button" aria-pressed="false" hidden>⇢ <span id="cruise-label">Cruise</span> <kbd>C</kbd></button>
+      <button id="map-button" class="icon-button">◎ <span>System map</span> <kbd>M</kbd></button>
+      <button id="sound" class="icon-button" aria-label="Turn sound on">♪ <span id="sound-label">OFF</span></button>
+      <button id="pause" class="icon-button" aria-label="Pause flight" hidden>Ⅱ</button>
+    </nav>
+  </header>
+  <section id="menu" class="menu">
+    <div class="eyebrow">FROM MARS TO THE OUTER DARK.</div>
+    <h1>A longer<br><em>way home.</em></h1>
+    <p>Eight worlds in motion. A network of asteroid ports.<br>Plot a route. Fuel up. Find your next horizon.</p>
+    <button id="launch" class="primary">Begin expedition <span>↗</span></button>
+    <div class="launch-note">ENTER TO LAUNCH · M TO EXPLORE THE MAP</div>
+    <div class="ship-caption"><span>YOUR SHIP / MARS DEPARTURE</span><strong>KESTREL <small>MK. II</small></strong><p>8 AU tank range · deep-space cruise drive</p></div>
+  </section>
+  <div id="flight-ui" hidden>
+    <aside class="mission"><div class="eyebrow">EXPEDITION LOG</div><h3><span id="visited-count">0</span> / 8 worlds visited</h3><div class="world-dots" id="world-dots"></div><p id="objective">Depart Mars. Chart the system.</p><div class="checkpoint-note" id="checkpoint-note">Rescue port: Mars departure orbit</div><button id="nearest-fuel" class="text-button">Find nearest fuel <kbd>N</kbd></button></aside>
+    <aside class="nav-card">
+      <span class="label" id="destination-name">DESTINATION · MARS</span>
+      <div class="target-heading"><h2 id="target-name">Mars</h2><button id="change-target" aria-label="Change destination">↗</button></div>
+      <div class="target-metrics"><div><span class="label">THIS LEG</span><strong id="target-range">0</strong></div><div><span class="label">RELATIVE SPEED</span><strong id="relative-speed">0</strong></div></div>
+      <div id="route-summary" class="route-summary"></div><p id="nav-hint">Aim for the diamond to intercept.</p><button id="align" class="text-button">Align with intercept <kbd>R</kbd></button>
+      <div class="mini-wrap"><canvas id="minimap" width="260" height="210" aria-label="Local space map with fuel range"></canvas><button id="expand-map">Plot route on system map ↗</button></div>
+    </aside>
+    <div id="target-marker" class="target-marker" hidden><span class="bracket"></span><b id="marker-name">MARS</b><small id="marker-distance"></small></div>
+    <div id="lead-marker" class="lead-marker" hidden><i></i><span>INTERCEPT</span></div><div id="direction" class="direction" hidden>↗ <span>MARS</span></div><div class="crosshair"><span></span></div>
+    <div class="interaction" id="interaction" hidden><div><strong id="interaction-title">Ready to land</strong><p id="interaction-detail">Match orbital speed, then deploy landing gear.</p></div><button id="land" class="primary">Land <kbd>F</kbd></button></div>
+  </div>
+  <section id="landing-panel" class="landing-panel" hidden><div class="eyebrow" id="landed-type">PORT SECURED</div><h2 id="landed-name">Mars</h2><p id="landed-description"></p><div class="landed-status" id="landed-status">HULL REPAIRED · FUEL RESTORED</div><button id="takeoff" class="primary">Take off <span>↑</span></button><button id="next-world" class="secondary">Choose your next destination ↗</button></section>
+  <footer>
+    <div class="controls"><span><kbd>W A S D</kbd> Steer</span><span><kbd>Q / E</kbd> Throttle</span><span><kbd>C</kbd> Cruise</span><span><kbd>SPACE</kbd> Boost</span><span><kbd>SHIFT</kbd> Brake</span><span><kbd>F</kbd> Land / Dock</span></div>
+    <div class="telemetry">
+      <div class="speed-block"><span class="label" id="flight-mode">MANOEUVRE</span><strong id="velocity">0 <small>U/S</small></strong></div>
+      <div class="meter"><span class="label">HULL <b id="health-value">100%</b></span><div class="bar"><span id="health-fill"></span></div><span class="label">BOOST <b id="boost-value">100%</b></span><div class="bar"><span id="boost-fill"></span></div></div>
+      <div class="fuel-meter"><span class="label">FUEL <b id="fuel-value">100%</b></span><div class="bar"><span id="fuel-fill"></span></div><span class="label">CRUISE RANGE <b id="fuel-range">8.0 AU</b></span></div>
+      <div class="throttle"><span class="label">THROTTLE</span><strong id="throttle-value">35%</strong></div>
+    </div>
+  </footer>
+  <div id="toast" class="toast" aria-live="polite"></div><div id="flash"></div>
+  <div class="touch-controls" id="touch" hidden><div id="joystick" aria-label="Drag to steer"><div id="stick"></div></div><div class="touch-actions"><button id="touch-brake">BRAKE</button><button id="touch-boost">BOOST</button></div></div>
+  <dialog id="map-dialog">
+    <div class="map-head"><div><span class="eyebrow">NAVIGATION / SOL SYSTEM</span><h2>Every journey starts with a route.</h2></div><button id="close-map" class="close" aria-label="Close system map">✕</button></div>
+    <div class="map-layout">
+      <div class="map-viewport">
+        <div id="map-route-summary" class="map-route-summary"></div>
+        <div class="map-tools" aria-label="Map view"><button id="map-system">Full system</button><button id="map-inner">Inner planets</button><button id="map-ship">My ship</button><button id="map-zoom-in" aria-label="Zoom map in">+</button><button id="map-zoom-out" aria-label="Zoom map out">−</button></div>
+        <canvas id="system-map" aria-label="Solar system map. Zoom and drag, or use the destination list to plot a route."></canvas>
+        <div class="map-legend"><span class="legend-ship">▲ SHIP / FUEL RANGE</span><span>◇ FUEL DEPOT</span><span>┄ PLANNED ROUTE</span></div>
+      </div>
+      <div class="map-sidebar"><div class="planet-list" id="planet-list"></div><div class="station-browser"><label for="station-search" class="list-heading">ASTEROID FUEL NETWORK</label><small id="depot-count"></small><input id="station-search" type="search" placeholder="Find a depot, e.g. Ceres" autocomplete="off"><div id="station-list"></div></div></div>
+    </div>
+    <div class="map-foot"><span>True mean orbital-distance ratios. Body sizes and orbital time exaggerated. Fuel routes replan as worlds move.</span><span id="map-flight-status">FLIGHT PAUSED</span></div>
+  </dialog>
+  <dialog id="pause-dialog"><div class="pause-panel"><span class="eyebrow">EXPEDITION ON HOLD</span><h2 id="pause-title">A moment<br>among the stars.</h2><p id="pause-text">Your journey will be here when you return.</p><button id="resume" class="primary">Resume expedition <span>↗</span></button><button id="respawn" class="secondary">Request rescue to last port</button></div></dialog>
+  <div id="error" hidden><h2>Unable to start the flight</h2><p>This game needs WebGL. Try a browser with hardware acceleration enabled.</p></div>
+</main>
+<script type="module" src="game.js"></script>
+</body>
+</html>
