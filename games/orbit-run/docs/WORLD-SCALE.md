@@ -2,6 +2,8 @@
 
 Implemented on `codex/solar-expedition`, after checkpoint `7d47a88`.
 
+The [planet exploration checklist](DEVELOPMENT-CHECKLIST.md) defines the next revision: proper surface scenes, a main ship that remains in orbit, cinematic lander descent/launch and manual return docking. Its planned planetary approach rules replace the prototype planet-impact/pad-landing behavior described below once implemented. The distance ratios and refuelling foundation remain the current baseline; ship proportions and travel pacing will be reviewed together.
+
 ## The scale decision
 
 Preserve real mean Sun-distance ratios on a **linear** world map. Use **1 AU = 3,000 gameplay units**. This gives the outer system room for the later story while keeping coordinates small enough for this browser renderer.

@@ -2,6 +2,12 @@
 
 **ORBIT RUN — Solar Explorer** is the browser-game foundation for the proposed **The Third Ring** story. Commit `7d47a88` preserves the original solar-system prototype. The current version expands the world using real mean orbital-distance ratios and adds cruise flight, fuel, and an orbiting asteroid-depot network. See [world scale and fuel policy](docs/WORLD-SCALE.md) for the numbers, sources, and gameplay compromises.
 
+## Next milestone: Mars surface exploration
+
+The [planet exploration implementation checklist](docs/DEVELOPMENT-CHECKLIST.md) tracks the next work: an expanding Mars settlement, drivable rovers, large solar fields, safe orbital capture, cinematic lander descent/launch, and player-controlled return docking with the main ship. It also covers destination loading, later planet activities, persistent saves and browser performance.
+
+This is a planning backlog. The current game still uses the prototype orbital landing platforms; the new surface/lander flow is not implemented yet.
+
 ## Run locally
 
 From this directory:
