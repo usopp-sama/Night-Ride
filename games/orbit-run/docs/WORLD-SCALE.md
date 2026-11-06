@@ -2,7 +2,7 @@
 
 Implemented on `codex/solar-expedition`, after checkpoint `7d47a88`.
 
-The [planet exploration checklist](DEVELOPMENT-CHECKLIST.md) defines the next revision: proper surface scenes, a main ship that remains in orbit, cinematic lander descent/launch and manual return docking. Its planned planetary approach rules replace the prototype planet-impact/pad-landing behavior described below once implemented. The distance ratios and refuelling foundation remain the current baseline; ship proportions and travel pacing will be reviewed together.
+The [first Mars surface build](MARS-SURFACE.md) now provides Hearth Crater, a rover, a local service activity and surface saves. The [planet exploration checklist](DEVELOPMENT-CHECKLIST.md) tracks the next transport revision: cinematic lander descent/launch and manual return docking. Planetary contacts now hold the ship outside the body instead of applying the original impact damage. The distance ratios and refuelling network remain the baseline; ship proportions and travel pacing will be reviewed together.
 
 ## The scale decision
 
@@ -36,7 +36,7 @@ Earth completes an orbit in 1,500 simulation seconds. Other periods follow the K
 - Cruise needs 650 units of planetary surface clearance and 300 units of depot clearance. It slows on approach to the current leg or a nearby body. Shift also disengages cruise and brakes.
 - A full tank covers 8 AU at normal/cruise efficiency. The HUD labels the estimate as cruise range because boost costs extra.
 - Fuel use is distance-based. Zero fuel leaves a very slow reserve thruster; Pause also provides rescue to the last checkpoint with a full tank. Running dry cannot permanently strand a session.
-- Normal landing remains available within 55 units of a planet's surface, at no more than 28 units/second relative speed.
+- Mars surface visits are available within 650 units through the Visit Hearth interaction. Other planets retain the prototype landing transition within 55 units and at no more than 28 units/second relative speed.
 
 ## The 269-depot network
 
@@ -65,4 +65,4 @@ The map provides full-system, inner-system, and ship-centred presets; wheel/butt
 - Tests cover scale ratios, orbital velocity, long-range interception, deterministic depot generation, graph connectivity at five orbital epochs, every planet's routes from Mars at three epochs, solar avoidance, low-fuel routing, fuel use, collision sweeps, and docking speed limits.
 - Browser checks cover route selection, map presets, cruise approach, moving-depot docking, partial-to-full fuel transfer, and departure/rescue controls.
 
-Persistent saves, moons, settlements, and story missions remain future work. The foundation is intended to support those without tying this pass to any unfinished chapter content.
+Mars now has a settlement, a local rover activity and browser-local surface saves. Full expedition persistence, other planetary scenes, moons, authored transport cinematics, manual mothership docking and the larger story chapters remain future work.

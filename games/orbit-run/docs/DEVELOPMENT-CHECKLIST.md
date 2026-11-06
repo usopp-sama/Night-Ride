@@ -2,8 +2,9 @@
 
 **Branch:** `codex/solar-expedition`  
 **Current gameplay baseline:** `7b47c07` (larger solar system, fuel depots, cruise and route planning)  
-**Next build milestone:** a playable Mars settlement with a drivable rover.  
-**Status:** planning backlog. Unchecked items are future work; writing this checklist does not implement them.
+**Current build milestone:** playable Mars settlement, rover and solar-service activity.
+**Next transport milestone:** lander cinematics and player-controlled orbital docking.
+**Status:** active implementation backlog. Checked Mars items are implemented in the [first playable surface build](MARS-SURFACE.md). Unchecked items remain future work.
 
 This is the maintained task list for the browser game. The original Night Drive car-game documents elsewhere in this repository describe a separate project.
 
@@ -67,16 +68,16 @@ Scene and vehicle foundations in section 4 support the Mars prototype. We can bu
 ## 4. Scene, vehicle and state foundations
 
 - [ ] CORE-01 — Separate solar-system flight, local orbital operations and surface exploration into scenes with explicit enter, update, pause and exit lifecycles.
-- [ ] CORE-02 — Reuse one renderer and one main animation loop; prevent hidden scenes from continuing duplicate simulation or input handling.
+- [x] CORE-02 — Reuse one renderer and one main animation loop; prevent hidden scenes from continuing duplicate simulation or input handling.
 - [ ] CORE-03 — Keep solar coordinates, body-relative orbital coordinates and surface coordinates distinct. Define conversions and units for each.
-- [ ] CORE-04 — Maintain each planet's identity and current solar orbit while its local scene is active. Returning to space must not reset the system's orbital phases.
+- [x] CORE-04 — Maintain each planet's identity and current solar orbit while its local scene is active. Returning to space must not reset the system's orbital phases.
 - [ ] CORE-05 — Define stable states: interplanetary flight, approach, orbit capture, orbit ready, descent, surface, launch, docking approach, docking captured and main-ship control.
 - [ ] CORE-06 — Define which actions are allowed in every state, including map, pause, rescue, scene loading, cinematic skip and vehicle switching.
 - [ ] CORE-07 — Add one transition coordinator so repeated clicks or key presses cannot trigger two landings, launches or scene loads.
 - [ ] CORE-08 — Introduce explicit vehicle roles: main ship, lander/probe and surface rover, each with separate handling settings and control bindings.
 - [ ] CORE-09 — Preserve fuel, hull, cargo, active destination, visit progress and rescue port when switching scenes or vehicles.
 - [ ] CORE-10 — Define lander stowed, deployed, surface and docked states so the same craft cannot exist in two places simultaneously.
-- [ ] CORE-11 — Define how rover ownership, location, damage and reset behave across visits. Initially use settlement-provided rovers unless that decision changes.
+- [x] CORE-11 — Define how rover ownership, location, damage and reset behave across visits. Initially use settlement-provided rovers unless that decision changes.
 - [ ] CORE-12 — Give stable data IDs to locations, landing sites, vehicles, docking ports, interactables and mission steps.
 - [ ] CORE-13 — Keep world layout, vehicle tuning, cinematic definitions and mission data separate from rendering code.
 - [ ] CORE-14 — Add development entry points for Mars surface and orbital docking so each can be tested without replaying a long trip.
@@ -88,46 +89,46 @@ Scene and vehicle foundations in section 4 support the Mars prototype. We can bu
 
 ### 5.1 Ground, scale and arrival
 
-- [ ] MARS-01 — Design a compact playable region with a settlement, solar farm, workshop route, expansion site and nearby terrain excursion.
-- [ ] MARS-02 — Establish consistent local human/rover/building dimensions so roads, doors, structures and the lander agree in scale.
-- [ ] MARS-03 — Build continuous driveable terrain with crater slopes, firm routes, rock outcrops and readable changes in elevation.
-- [ ] MARS-04 — Create a convincing horizon and distant terrain backdrop without building or rendering an entire planet surface.
+- [x] MARS-01 — Design a compact playable region with a settlement, solar farm, workshop route, expansion site and nearby terrain excursion.
+- [x] MARS-02 — Establish consistent local human/rover/building dimensions so roads, doors, structures and the lander agree in scale.
+- [x] MARS-03 — Build continuous driveable terrain with crater slopes, firm routes, rock outcrops and readable changes in elevation.
+- [x] MARS-04 — Create a convincing horizon and distant terrain backdrop without building or rendering an entire planet surface.
 - [ ] MARS-05 — Make the orbital sphere and local surface visually agree: Mars color, light direction, terrain palette and arrival-site location.
-- [ ] MARS-06 — Add ground collision and a dependable surface-height query for rovers, buildings, lander supports and reset points.
-- [ ] MARS-07 — Reserve a coherent lander arrival/launch site with enough room for the craft, exhaust effects and a safe rover access route.
-- [ ] MARS-08 — Place safe arrival and rover spawn positions that cannot intersect terrain, buildings, solar panels or the lander.
+- [x] MARS-06 — Add ground collision and a dependable surface-height query for rovers, buildings, lander supports and reset points.
+- [x] MARS-07 — Reserve a coherent lander arrival/launch site with enough room for the craft, exhaust effects and a safe rover access route.
+- [x] MARS-08 — Place safe arrival and rover spawn positions that cannot intersect terrain, buildings, solar panels or the lander.
 - [ ] MARS-09 — Use physical terrain, signs and distant landmarks to communicate the region's limits; add a recoverable fallback if a vehicle leaves the playable area.
-- [ ] MARS-10 — Add a recognizable visual landmark visible from the landing site, workshop and expansion area to help players orient themselves.
+- [x] MARS-10 — Add a recognizable visual landmark visible from the landing site, workshop and expansion area to help players orient themselves.
 
 ### 5.2 The inhabited settlement
 
-- [ ] MARS-11 — Lay out an inhabited core with pressurized habitat modules, connecting structures, external service paths and a central communications point.
-- [ ] MARS-12 — Add greenhouse structures or visible food-production equipment that makes the colony feel occupied.
-- [ ] MARS-13 — Add life-support infrastructure: external tanks, pipes, heat exchangers and maintenance access, with a consistent visual language.
+- [x] MARS-11 — Lay out an inhabited core with pressurized habitat modules, connecting structures, external service paths and a central communications point.
+- [x] MARS-12 — Add greenhouse structures or visible food-production equipment that makes the colony feel occupied.
+- [x] MARS-13 — Add life-support infrastructure: external tanks, pipes, heat exchangers and maintenance access, with a consistent visual language.
 - [ ] MARS-14 — Build a vehicle workshop with rover parking, repair/charging equipment, tools and a clear way to select a vehicle.
-- [ ] MARS-15 — Place cargo racks, supply containers and unloading points beside believable service routes.
+- [x] MARS-15 — Place cargo racks, supply containers and unloading points beside believable service routes.
 - [ ] MARS-16 — Add navigation signs for Habitats, Solar Field, Workshop, Expansion and Lander, with readable icons as well as text.
-- [ ] MARS-17 — Give the settlement a small number of believable signs of life: lit windows, maintenance activity, radio traffic or worker silhouettes, within the art/performance budget.
-- [ ] MARS-18 — Provide an interaction point for Mara and the settlement briefing. A radio/console interaction is sufficient before animated people or interiors are added.
+- [x] MARS-17 — Give the settlement a small number of believable signs of life: lit windows, maintenance activity, radio traffic or worker silhouettes, within the art/performance budget.
+- [x] MARS-18 — Provide an interaction point for Mara and the settlement briefing. A radio/console interaction is sufficient before animated people or interiors are added.
 - [ ] MARS-19 — Add localized ambient sound for machinery, settlement equipment and rover operation, with independent music/effects controls.
 - [ ] MARS-20 — Ensure scene presentation still works with audio muted and with lower graphics settings.
 
 ### 5.3 Large solar-panel field
 
-- [ ] MARS-21 — Build a large, visible solar farm as a defining settlement landmark, using repeated modules with shared geometry/materials.
-- [ ] MARS-22 — Space rows so the rover can use service lanes without driving through panel meshes.
-- [ ] MARS-23 — Add support frames, cabling/trenches, inverters and a connection to settlement power infrastructure.
+- [x] MARS-21 — Build a large, visible solar farm as a defining settlement landmark, using repeated modules with shared geometry/materials.
+- [x] MARS-22 — Space rows so the rover can use service lanes without driving through panel meshes.
+- [x] MARS-23 — Add support frames, cabling/trenches, inverters and a connection to settlement power infrastructure.
 - [ ] MARS-24 — Define active, dusty, isolated and repaired panel states that can be understood at a glance.
-- [ ] MARS-25 — Add a simple readable power-status display at the field service point.
-- [ ] MARS-26 — Choose one initial panel-related interaction, such as restoring a cable connection or delivering a replacement controller.
-- [ ] MARS-27 — Show the result of that interaction in the world: panel/status lights, equipment activity and settlement power feedback.
-- [ ] MARS-28 — Keep the panel field's collision layout simpler than its visible geometry and avoid expensive per-panel physics.
+- [x] MARS-25 — Add a simple readable power-status display at the field service point.
+- [x] MARS-26 — Choose one initial panel-related interaction, such as restoring a cable connection or delivering a replacement controller.
+- [x] MARS-27 — Show the result of that interaction in the world: panel/status lights, equipment activity and settlement power feedback.
+- [x] MARS-28 — Keep the panel field's collision layout simpler than its visible geometry and avoid expensive per-panel physics.
 
 ### 5.4 A settlement visibly expanding
 
-- [ ] MARS-29 — Block out the unfinished third habitat ring/expansion area beside the occupied settlement.
-- [ ] MARS-30 — Include foundation works, partially assembled modules, construction frames, equipment and delivery access.
-- [ ] MARS-31 — Give the unfinished area a clear visual connection to the occupied settlement and the power system it will depend on.
+- [x] MARS-29 — Block out the unfinished third habitat ring/expansion area beside the occupied settlement.
+- [x] MARS-30 — Include foundation works, partially assembled modules, construction frames, equipment and delivery access.
+- [x] MARS-31 — Give the unfinished area a clear visual connection to the occupied settlement and the power system it will depend on.
 - [ ] MARS-32 — Define expansion states in data: planned, foundations, structural assembly, systems installation and occupied.
 - [ ] MARS-33 — Identify which existing props change, disappear or become active at each expansion state.
 - [ ] MARS-34 — Implement a repeatable development switch for these states so artists and testers can inspect them without completing the story.
@@ -136,35 +137,39 @@ Scene and vehicle foundations in section 4 support the Mars prototype. We can bu
 
 ### 5.5 Things to do on Mars
 
-- [ ] MARS-37 — Build a settlement orientation route that teaches rover movement and points out the solar field, workshop, expansion area and lander.
-- [ ] MARS-38 — Implement one short local service job end to end, with an objective, a physical destination, an action and a visible result.
-- [ ] MARS-39 — Connect that job to the settlement's needs, for example delivering a solar controller or equipment to the construction site.
-- [ ] MARS-40 — Add a nearby terrain excursion that rewards exploration with a survey view, information or a useful location.
-- [ ] MARS-41 — Give interaction points distinct prompts; do not require players to guess which decorative props are usable.
-- [ ] MARS-42 — Allow a local job to be interrupted and resumed without duplicating its delivery/reward.
-- [ ] MARS-43 — Reserve an optional quiet activity, such as visiting an overlook or listening to settlement radio, that remains available after the main objective.
+- [x] MARS-37 — Build a settlement orientation route that teaches rover movement and points out the solar field, workshop, expansion area and lander.
+- [x] MARS-38 — Implement one short local service job end to end, with an objective, a physical destination, an action and a visible result.
+- [x] MARS-39 — Connect that job to the settlement's needs, for example delivering a solar controller or equipment to the construction site.
+- [x] MARS-40 — Add a nearby terrain excursion that rewards exploration with a survey view, information or a useful location.
+- [x] MARS-41 — Give interaction points distinct prompts; do not require players to guess which decorative props are usable.
+- [x] MARS-42 — Allow a local job to be interrupted and resumed without duplicating its delivery/reward.
+- [x] MARS-43 — Reserve an optional quiet activity, such as visiting an overlook or listening to settlement radio, that remains available after the main objective.
 - [ ] MARS-44 — Add the briefing hook for the later Europa lead, keeping it distinct from the local rover introduction.
 - [ ] MARS-45 — Define what remains available on repeat visits and after the story ending.
 
 **Mars completion gate:** arrive in a believable settlement, drive between all major facilities, complete one meaningful local activity, see a visible consequence and return to the lander. Final planet story writing is a later milestone.
 
+The first surface build completes the local solar-service loop. Multi-stage habitat construction and the final story homecoming remain future work.
+
 ## 6. Drivable Martian rovers
 
-- [ ] ROVER-01 — Build one readable futuristic utility rover with visible wheels, suspension, cockpit and a small cargo area.
-- [ ] ROVER-02 — Make the handling accessible: predictable steering, acceleration, braking and reverse, with forgiving low-speed control.
+- [x] ROVER-01 — Build one readable futuristic utility rover with visible wheels, suspension, cockpit and a small cargo area.
+- [x] ROVER-02 — Make the handling accessible: predictable steering, acceleration, braking and reverse, with forgiving low-speed control.
 - [ ] ROVER-03 — Tune grip and suspension for uneven Martian terrain while preserving a calm exploration pace.
-- [ ] ROVER-04 — Keep wheel placement and suspension visuals in contact with slopes; prevent obvious hovering or ground clipping.
-- [ ] ROVER-05 — Add simple terrain and static-structure collision with a stable chassis shape.
-- [ ] ROVER-06 — Handle steep slopes, drops, overturned vehicles and getting stuck; provide a recoverable reset to a nearby safe point.
+- [x] ROVER-04 — Keep wheel placement and suspension visuals in contact with slopes; prevent obvious hovering or ground clipping.
+- [x] ROVER-05 — Add simple terrain and static-structure collision with a stable chassis shape.
+- [x] ROVER-06 — Handle steep slopes, drops, overturned vehicles and getting stuck; provide a recoverable reset to a nearby safe point.
 - [ ] ROVER-07 — Add a chase camera with orbit/look controls, obstacle handling and a reset-view action.
 - [ ] ROVER-08 — Provide a clear rover selection/boarding flow from the arrival or workshop area, and a reliable way to return control to the lander.
 - [ ] ROVER-09 — Make keyboard and touch controls available; add controller mapping after the primary controls are usable.
-- [ ] ROVER-10 — Show speed and interaction prompts appropriate to surface travel rather than the space-flight HUD.
-- [ ] ROVER-11 — Carry at least one mission delivery visually or through a clear cargo indicator and unload it at the correct site.
-- [ ] ROVER-12 — Decide whether rover battery/charging supports the first activities. If included, provide generous range and recovery rather than introducing an early grind.
+- [x] ROVER-10 — Show speed and interaction prompts appropriate to surface travel rather than the space-flight HUD.
+- [x] ROVER-11 — Carry at least one mission delivery visually or through a clear cargo indicator and unload it at the correct site.
+- [x] ROVER-12 — Decide whether rover battery/charging supports the first activities. If included, provide generous range and recovery rather than introducing an early grind.
 - [ ] ROVER-13 — Add restrained dust, wheel trails and motor/suspension audio within the browser budget.
-- [ ] ROVER-14 — Preserve rover location and carried cargo during menu use, lander interactions and saved-game reloads.
+- [x] ROVER-14 — Preserve rover location and carried cargo during menu use, lander interactions and saved-game reloads.
 - [ ] ROVER-15 — Test a complete settlement circuit on keyboard and touch, including stopping precisely at a service point.
+
+The initial prototype uses a settlement-provided rover with no battery drain or damage economy; physical contacts stop the chassis and recovery preserves progress.
 
 **Scope decision still open:** free on-foot walking, character animation and building interiors. The first surface milestone can be rover-led; these extra systems are not assumed to be required for it.
 
@@ -375,7 +380,7 @@ Use CHAPTER-01 through CHAPTER-12 as the specification checklist for each of the
 ## 13. Browser performance, controls and presentation
 
 - [ ] WEB-01 — Set measurable target devices, browsers, resolution, frame-rate goals and memory/loading budgets before polishing Mars assets.
-- [ ] WEB-02 — Use instancing/shared materials for solar panels, habitat modules, repeated rocks and construction pieces.
+- [x] WEB-02 — Use instancing/shared materials for solar panels, habitat modules, repeated rocks and construction pieces.
 - [ ] WEB-03 — Add distance-based detail and culling for terrain, settlement props and vehicles.
 - [ ] WEB-04 — Keep rover collision and surface physics simpler than the visible meshes; profile the cost before adding simulated clutter.
 - [ ] WEB-05 — Load only the active destination and a small amount of prefetched content, not all planet surfaces at once.
@@ -385,10 +390,10 @@ Use CHAPTER-01 through CHAPTER-12 as the specification checklist for each of the
 - [ ] WEB-09 — Revisit the same planet repeatedly and verify listeners, meshes, audio and GPU resources do not accumulate.
 - [ ] WEB-10 — Support browser resize, narrow windows and portrait/landscape changes without losing controls or clipping mandatory prompts.
 - [ ] WEB-11 — Keep keyboard and touch control schemes discoverable and specific to the current vehicle/scene.
-- [ ] WEB-12 — Add captions for required dialogue, readable objective text, contrast-safe indicators and cues beyond color alone.
+- [x] WEB-12 — Add captions for required dialogue, readable objective text, contrast-safe indicators and cues beyond color alone.
 - [ ] WEB-13 — Provide reduced-motion/cinematic-skip options and make camera movement adjustable where practical.
 - [ ] WEB-14 — Handle tab suspension, pause/resume and WebGL context loss with a valid restore/checkpoint path.
-- [ ] WEB-15 — Keep the initial release compatible with static hosting; document any future backend need separately before depending on it.
+- [x] WEB-15 — Keep the initial release compatible with static hosting; document any future backend need separately before depending on it.
 
 ## 14. Integration and release checks
 

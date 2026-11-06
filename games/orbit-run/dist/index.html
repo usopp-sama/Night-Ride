@@ -8,6 +8,7 @@
   <title>ORBIT RUN — Solar Explorer</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090f1a'/%3E%3Cpath d='M8 23L16 5l8 18-8-4z' fill='%23d9ff7a'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="mars.css">
 </head>
 <body>
 <main id="game">
@@ -26,8 +27,9 @@
     <div class="eyebrow">FROM MARS TO THE OUTER DARK.</div>
     <h1>A longer<br><em>way home.</em></h1>
     <p>Eight worlds in motion. A network of asteroid ports.<br>Plot a route. Fuel up. Find your next horizon.</p>
-    <button id="launch" class="primary">Begin expedition <span>↗</span></button>
-    <div class="launch-note">ENTER TO LAUNCH · M TO EXPLORE THE MAP</div>
+    <button id="mars-launch" class="primary">Explore Mars <span>↗</span></button>
+    <button id="launch" class="secondary space-launch">Fly the solar system ↗</button>
+    <div class="launch-note">ENTER FOR MARS · M FOR THE SOLAR SYSTEM</div>
     <div class="ship-caption"><span>YOUR SHIP / MARS DEPARTURE</span><strong>KESTREL <small>MK. II</small></strong><p>8 AU tank range · deep-space cruise drive</p></div>
   </section>
   <div id="flight-ui" hidden>
@@ -69,6 +71,18 @@
     <div class="map-foot"><span>True mean orbital-distance ratios. Body sizes and orbital time exaggerated. Fuel routes replan as worlds move.</span><span id="map-flight-status">FLIGHT PAUSED</span></div>
   </dialog>
   <dialog id="pause-dialog"><div class="pause-panel"><span class="eyebrow">EXPEDITION ON HOLD</span><h2 id="pause-title">A moment<br>among the stars.</h2><p id="pause-text">Your journey will be here when you return.</p><button id="resume" class="primary">Resume expedition <span>↗</span></button><button id="respawn" class="secondary">Request rescue to last port</button></div></dialog>
+  <section id="mars-ui" aria-label="Mars surface exploration" hidden>
+    <div class="mars-location"><span class="mars-eyebrow">MARS / SURFACE OPERATIONS</span><h1>Hearth Crater<span>01</span></h1><p>A little warmth in the red.</p></div>
+    <aside class="mars-task"><div class="mars-task-top"><span>SETTLEMENT SERVICES</span><b id="mars-mission-step">01 / COLLECT</b></div><h2 id="mars-mission-title">A little more daylight</h2><p id="mars-mission-detail"></p><div class="mars-power-row"><i></i><span id="mars-power-label">EAST ARRAY ISOLATED</span><strong id="mars-power">42%</strong></div></aside>
+    <aside class="mars-navigation"><span class="mars-eyebrow">YOUR NEXT STOP</span><h2 id="mars-target-name">Vehicle workshop</h2><p><strong id="mars-target-distance">0 m</strong><span id="mars-coordinates"></span></p><div id="mars-waypoints" class="mars-waypoints"></div><div class="mars-view-buttons"><button id="mars-view" aria-pressed="false">Survey view <kbd>V</kbd></button><button id="mars-reset">Recover rover <kbd>R</kbd></button></div></aside>
+    <div id="mars-target-marker" class="mars-target-marker" hidden><i></i><span id="mars-marker-label"></span></div>
+    <div id="mars-radio" class="mars-radio" hidden><i>⌁</i><p id="mars-radio-text"></p></div>
+    <div id="mars-interaction" class="mars-interaction" hidden><div><strong id="mars-interaction-title"></strong><p id="mars-interaction-hint"></p></div><button id="mars-interact" class="primary">Interact <kbd>F</kbd></button></div>
+    <div class="mars-bottom"><div class="mars-rover-telemetry"><span class="mars-eyebrow" id="mars-cargo">UTILITY ROVER / NOMAD 06</span><div><strong id="mars-speed">0</strong><span>KM/H</span><b id="mars-gear">P</b></div><small id="mars-save-state">FIELD LOG SAVED</small></div><div class="mars-control-guide"><span><kbd>W / S</kbd> Drive / Reverse</span><span><kbd>A / D</kbd> Steer</span><span><kbd>SPACE</kbd> Brake</span><span><kbd>F</kbd> Interact</span><span>DRAG TO LOOK · C TO RESET VIEW</span></div><button id="mars-open-map" class="mars-minimap-button" aria-label="Open Mars site atlas"><canvas id="mars-minimap" aria-label="Mars settlement map"></canvas><span>HEARTH SITE ATLAS <kbd>M</kbd></span></button></div>
+    <div class="mars-touch" aria-label="Rover touch controls"><div class="mars-dpad"><button data-mars-control="forward" aria-label="Accelerate rover">↑</button><button data-mars-control="left" aria-label="Steer left">←</button><button data-mars-control="reverse" aria-label="Reverse rover">↓</button><button data-mars-control="right" aria-label="Steer right">→</button></div><button data-mars-control="brake" class="mars-brake">BRAKE</button></div>
+  </section>
+  <dialog id="mars-map-dialog"><div class="map-head"><div><span class="eyebrow">MARS / LOCAL NAVIGATION</span><h2>Hearth Crater site atlas</h2></div><button id="mars-map-close" class="close" aria-label="Close Mars site atlas">✕</button></div><canvas id="mars-map" aria-label="Map of the Mars settlement and service roads"></canvas><p class="mars-map-note">Habitat commons · Vehicle workshop · East solar field · Third ring · Crater overlook · Lander berth</p></dialog>
+  <div id="surface-loading" class="surface-loading" hidden><span class="mars-eyebrow">KESTREL / SURFACE LINK</span><h2 id="surface-loading-text">Preparing Mars arrival</h2><div></div></div>
   <div id="error" hidden><h2>Unable to start the flight</h2><p>This game needs WebGL. Try a browser with hardware acceleration enabled.</p></div>
 </main>
 <script type="module" src="game.js"></script>

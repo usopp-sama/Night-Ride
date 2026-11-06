@@ -7,6 +7,8 @@ try{world=makeWorld($('space'));}catch(error){$('error').hidden=false;throw erro
 const {camera,renderer,scene,ship,model,planets,rocks,checkpoints,pad}=world;
 const planetById=new Map(planets.map(p=>[p.id,p])),depotById=new Map(checkpoints.map(c=>[c.id,c]));
 const clock=new THREE.Clock(),velocity=new THREE.Vector3(),up=new THREE.Vector3(0,1,0),forward=new THREE.Vector3(0,0,-1),origin=new THREE.Vector3(),keys=new Set(),stick={x:0,y:0};
+let marsSurface=null;
+const isMarsActive=()=>state==='surface'||state==='paused'&&pausedFrom==='surface';
 let state='menu',simTime=0,visualTime=0,yaw=0,pitch=0,throttle=.35,energy=100,fuel=100,health=100;
 let invulnerable=0,toastTime=0,alignTime=0,boostHeld=false,brakeHeld=false,boosting=false,cruise=false,approachBrake=0;
 let selected={type:'planet',id:'mars'},route=null,routeTimer=0,landing=null,service=null,transitionTime=0,pausedFrom='flight',mapReturnFocus=null;
@@ -34,7 +36,7 @@ const navigation=makeNavigation({planets,stations:checkpoints,ship,getFuel:()=>f
 function directionToAngles(d){yaw=Math.atan2(-d.x,-d.z);pitch=Math.asin(clamp(d.y,-1,1));}
 function orient(direction){directionToAngles(direction.clone().normalize());ship.quaternion.setFromEuler(new THREE.Euler(pitch,yaw,0,'YXZ'));}
 function notify(text){$('toast').textContent=text;$('toast').classList.add('show');toastTime=4.5;}
-function clearInput(){keys.clear();stick.x=stick.y=0;boostHeld=brakeHeld=false;$('stick').style.transform='';}
+function clearInput(){marsSurface?.clearInput();keys.clear();stick.x=stick.y=0;boostHeld=brakeHeld=false;$('stick').style.transform='';}
 function audioStart(){
   if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();engineOsc=audioCtx.createOscillator();engineGain=audioCtx.createGain();const filter=audioCtx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=180;engineOsc.type='sawtooth';engineOsc.frequency.value=45;engineGain.gain.value=0;engineOsc.connect(filter);filter.connect(engineGain);engineGain.connect(audioCtx.destination);engineOsc.start();}
   audioCtx.resume();
@@ -44,6 +46,36 @@ function tone(freq,len,type='sine'){
 }
 function start(){
   state='flight';orient(ship.position.clone().sub(planetById.get('mars').root.position));clearInput();$('menu').hidden=true;$('flight-ui').hidden=false;$('pause').hidden=false;$('cruise').hidden=false;$('landing-panel').hidden=true;document.body.classList.add('flying');$('touch').hidden=!matchMedia('(pointer:coarse)').matches;world.resetTrail();refreshRoute();updateHud();notify('Depart Mars · M plots your route · N finds fuel · C engages cruise');if(!muted)try{audioStart();}catch{}
+}
+async function enterMars(){
+  if(isMarsActive()||state==='surface-loading')return;
+  const priorState=state;state='surface-loading';if($('map-dialog').open)$('map-dialog').close();if($('pause-dialog').open)$('pause-dialog').close();clearInput();cruise=false;boosting=false;approachBrake=0;
+  toastTime=0;$('toast').classList.remove('show');$('surface-loading-text').textContent='Preparing Hearth Crater arrival';$('surface-loading').hidden=false;
+  try{
+    const {createMarsSurface}=await import('./mars.js');
+    marsSurface=createMarsSurface({renderer,onReturnToOrbit:leaveMars,onPause:pause,onNotify:notify,getMuted:()=>muted});
+    landing=service=null;pad.visible=false;velocity.set(0,0,0);state='surface';visited.add('mars');
+    checkpoint={type:'planet',id:'mars',normal:new THREE.Vector3(0,.13,1).normalize(),altitude:700,name:'Hearth Crater departure orbit'};
+    for(const id of ['menu','flight-ui','landing-panel','touch','cruise'])$(id).hidden=true;
+    $('pause').hidden=false;document.body.classList.remove('flying');
+    document.querySelector('.sector').innerHTML='MARS <i></i> HEARTH CRATER';document.querySelector('.brand small').textContent='SURFACE OPERATIONS';$('map-button').querySelector('span').textContent='Site atlas';
+    $('space').setAttribute('aria-label','Mars settlement terrain and rover');$('pause').setAttribute('aria-label','Pause surface exploration');marsSurface.enter();navigation.refreshList(visited,checkpointHits);
+  }catch(error){
+    marsSurface?.exit();marsSurface=null;state=priorState;
+    document.querySelector('.sector').innerHTML='SOL SYSTEM <i></i> DEEP SPACE';document.querySelector('.brand small').textContent='SOLAR EXPLORER';$('map-button').querySelector('span').textContent='System map';
+    $('menu').hidden=priorState!=='menu';$('flight-ui').hidden=priorState==='menu';$('pause').hidden=priorState==='menu';$('cruise').hidden=priorState==='menu';
+    notify('Mars could not be loaded. Please try again.');console.error('Mars scene load failed',error);
+  }finally{$('surface-loading').hidden=true;}
+}
+function leaveMars(){
+  if(!isMarsActive())return;
+  marsSurface.exit();marsSurface=null;clearInput();$('space').setAttribute('aria-label','Three-dimensional solar system');$('pause').setAttribute('aria-label','Pause flight');
+  const p=planetById.get('mars'),normal=new THREE.Vector3(0,.13,1).normalize();
+  ship.position.copy(p.root.position).addScaledVector(normal,p.radius+700);orient(normal);velocity.copy(orbitalVelocity(p,simTime));
+  health=energy=fuel=100;throttle=0;state='flight';invulnerable=5;landing=service=null;
+  $('flight-ui').hidden=false;$('pause').hidden=false;$('cruise').hidden=false;$('landing-panel').hidden=true;$('touch').hidden=!matchMedia('(pointer:coarse)').matches;document.body.classList.add('flying');
+  document.querySelector('.sector').innerHTML='SOL SYSTEM <i></i> DEEP SPACE';document.querySelector('.brand small').textContent='SOLAR EXPLORER';$('map-button').querySelector('span').textContent='System map';
+  camera.position.copy(ship.position).add(new THREE.Vector3(0,5,20).applyQuaternion(ship.quaternion));world.resetTrail();refreshRoute();updateHud();notify('Back in Mars departure orbit. Your rover and surface progress are saved.');
 }
 function nearestPlanet(){
   let result=null;
@@ -66,13 +98,15 @@ function toggleCruise(){
   cruise=true;alignTime=2;notify('Cruise engaged · R aligns your course · Shift brakes');
 }
 function pause(){
+  if(isMarsActive()&&marsSurface?.blocked){marsSurface.openMap();return;}
   if($('map-dialog').open){closeMap();return;}
   if(state==='paused'){state=pausedFrom;$('pause-dialog').close();clearInput();return;}
-  if(!['flight','landed','refueling','docked'].includes(state))return;
-  pausedFrom=state;state='paused';clearInput();$('pause-title').innerHTML='A moment<br>among the stars.';$('pause-text').textContent='Need assistance? Rescue returns you to your last port with a full tank.';$('resume').innerHTML='Resume expedition <span>↗</span>';$('respawn').hidden=false;$('pause-dialog').showModal();
+  if(!['flight','landed','refueling','docked','surface'].includes(state))return;
+  pausedFrom=state;state='paused';clearInput();$('pause-title').innerHTML='A moment<br>among the stars.';$('pause-text').textContent='Need assistance? Rescue returns you to your last port with a full tank.';$('resume').innerHTML='Resume expedition <span>↗</span>';$('respawn').hidden=false;$('respawn').textContent=pausedFrom==='surface'?'Recover rover to lander':'Request rescue to last port';if(pausedFrom==='surface')$('pause-text').textContent='Your rover and field log are safe. Recovery returns the rover to the lander berth.';$('pause-dialog').showModal();
 }
 function openMap(){
-  if(['landing','takeoff','disabled'].includes(state))return;
+  if(isMarsActive()){if(state==='paused')pause();marsSurface.openMap();return;}
+  if(['landing','takeoff','disabled','surface-loading'].includes(state))return;
   if($('map-dialog').open){closeMap();return;}
   if(state==='paused')pause();clearInput();mapReturnFocus=document.activeElement;refreshRoute();$('map-flight-status').textContent=state==='menu'?'EXPEDITION PLANNER':'FLIGHT PAUSED';$('map-dialog').showModal();navigation.refreshList(visited,checkpointHits);navigation.draw();
 }
@@ -83,6 +117,7 @@ function damage(amount,message){
   if(health<=0){state='disabled';clearInput();$('pause-title').textContent='Signal lost.';$('pause-text').textContent=`Your rescue beacon is linked to ${checkpoint.name}. Exploration progress is safe.`;$('resume').innerHTML='Return to checkpoint <span>↗</span>';$('respawn').hidden=true;$('pause-dialog').showModal();}
 }
 function respawn(){
+  if(isMarsActive()){if($('pause-dialog').open)$('pause-dialog').close();state='surface';marsSurface.reset();return;}
   if($('pause-dialog').open)$('pause-dialog').close();if($('map-dialog').open)$('map-dialog').close();
   if(checkpoint.type==='planet'){const p=planetById.get(checkpoint.id);ship.position.copy(p.root.position).addScaledVector(checkpoint.normal,p.radius+checkpoint.altitude);orient(checkpoint.normal);velocity.copy(orbitalVelocity(p,simTime));}
   else{const c=depotById.get(checkpoint.id);ship.position.copy(c.center).addScaledVector(c.normal,150);orient(c.normal);velocity.copy(orbitalVelocity(c,simTime));}
@@ -115,6 +150,7 @@ function departDepot(){
 }
 function land(){
   const n=nearestPlanet();
+  if(n.planet.id==='mars'){if(n.altitude<=650)enterMars();else notify('Approach within 650 u of Mars, then press F to visit Hearth Crater.');return;}
   if(!canLand(n.altitude,n.relativeSpeed)){notify(n.altitude>55?'Get within 55 u of a planet, or press N to find a fuel depot.':'Hold Shift to match orbital speed before landing.');return;}
   landing={planet:n.planet,normal:ship.position.clone().sub(n.planet.root.position).normalize(),startOffset:ship.position.clone().sub(n.planet.root.position),startQuaternion:ship.quaternion.clone()};state='landing';transitionTime=0;velocity.set(0,0,0);cruise=false;approachBrake=0;clearInput();pad.visible=true;alignTime=0;$('interaction').hidden=true;$('touch').hidden=true;notify('Approach captured · landing on '+n.planet.name);
 }
@@ -164,7 +200,7 @@ function simulate(dt){
   // Collision tests use swept segments in moving bodies' reference frames.
   for(const p of planets){
     const a=previous.clone().sub(p.previous),b=ship.position.clone().sub(p.root.position),hit=segmentSphereEntry(a,b,p.radius+2);
-    if(hit!==null){const normal=a.clone().lerp(b,hit).normalize();if(normal.lengthSq()<.1)normal.copy(up);ship.position.copy(p.root.position).addScaledVector(normal,p.radius+8);velocity.copy(normal).multiplyScalar(14).add(new THREE.Vector3().copy(orbitalVelocity(p,simTime)));throttle=.12;damage(30,'Surface impact · brake and match orbit before landing');break;}
+    if(hit!==null){const normal=a.clone().lerp(b,hit).normalize();if(normal.lengthSq()<.1)normal.copy(up);ship.position.copy(p.root.position).addScaledVector(normal,p.radius+8);ship.position.copy(p.root.position).addScaledVector(normal,p.radius+150);velocity.copy(orbitalVelocity(p,simTime));throttle=0;cruise=false;approachBrake=1;notify('Orbital approach limit · choose Land when ready');break;}
   }
   for(const rock of rocks){
     if(ship.position.distanceToSquared(rock.center)>(velocity.length()*dt+rock.radius+8)**2)continue;
@@ -212,32 +248,34 @@ function updateHud(){
   $('throttle-value').textContent=Math.round(throttle*100)+'%';$('visited-count').textContent=visited.size;$('checkpoint-note').textContent='Rescue port: '+checkpoint.name;
   [...$('world-dots').children].forEach((d,i)=>d.classList.toggle('visited',visited.has(planets[i].id)));
   $('objective').textContent=visited.size===8?'All worlds charted. Keep exploring.':'Depart Mars. Chart the system. Refuel at asteroid depots along the way.';
-  $('nav-hint').textContent=t.center?'Slow within 120 u. Hold Shift to match speed, then F to dock.':range<500?'Hold Shift to match orbit. Land within 55 u with F.':'R to align · C for cruise after clearing nearby bodies.';
-  const d=nearestDepot(),p=nearestPlanet(),showDepot=d.range<180&&d.range<p.altitude+60,showPlanet=p.altitude<95;
+  $('nav-hint').textContent=t.center?'Slow within 120 u. Hold Shift to match speed, then F to dock.':t.id==='mars'&&range<1000?'Press F within 650 u to visit Hearth Crater.':range<500?'Hold Shift to match orbit. Land within 55 u with F.':'R to align · C for cruise after clearing nearby bodies.';
+  const d=nearestDepot(),p=nearestPlanet(),isMars=p.planet.id==='mars',showDepot=d.range<180&&d.range<p.altitude+60,showPlanet=p.altitude<(isMars?650:95);
   $('interaction').hidden=state!=='flight'||(!showDepot&&!showPlanet);
   if(!$('interaction').hidden){
-    const ready=showDepot?canDock(d.range,d.relativeSpeed):canLand(p.altitude,p.relativeSpeed);
+    const ready=showDepot?canDock(d.range,d.relativeSpeed):isMars?p.altitude<=650:canLand(p.altitude,p.relativeSpeed);
     $('interaction-title').textContent=showDepot?d.station.name:'Approaching '+p.planet.name;
-    $('interaction-detail').textContent=ready?'Approach captured. Press F when ready.':showDepot?'Close within 120 u and brake to match the depot.':'Close within 55 u and brake to match orbit.';
-    $('land').disabled=!ready;$('land').innerHTML=(ready?showDepot?'Dock & refuel':'Land':'Brake / approach')+' <kbd>F</kbd>';
+    $('interaction-detail').textContent=isMars&&!showDepot?'Enter Mars orbit and descend to Hearth Crater.':ready?'Approach captured. Press F when ready.':showDepot?'Close within 120 u and brake to match the depot.':'Close within 55 u and brake to match orbit.';
+    $('land').disabled=!ready;$('land').innerHTML=(ready?showDepot?'Dock & refuel':isMars?'Visit Hearth':'Land':'Brake / approach')+' <kbd>F</kbd>';
   }
 }
-$('launch').onclick=start;$('pause').onclick=pause;$('resume').onclick=()=>state==='disabled'?respawn():pause();$('respawn').onclick=respawn;
+$('mars-launch').onclick=enterMars;$('launch').onclick=start;$('pause').onclick=pause;$('resume').onclick=()=>state==='disabled'?respawn():pause();$('respawn').onclick=respawn;
 $('map-button').onclick=openMap;$('change-target').onclick=openMap;$('expand-map').onclick=openMap;$('close-map').onclick=closeMap;$('next-world').onclick=openMap;
 $('align').onclick=alignCourse;$('land').onclick=interact;$('takeoff').onclick=interact;$('cruise').onclick=toggleCruise;$('nearest-fuel').onclick=nearestFuel;
 $('map-dialog').addEventListener('cancel',e=>{e.preventDefault();closeMap();});$('pause-dialog').addEventListener('cancel',e=>{e.preventDefault();if(state==='paused')pause();});
 $('sound').onclick=()=>{muted=!muted;try{if(!muted)audioStart();}catch{muted=true;notify('Audio is unavailable in this browser.');}$('sound-label').textContent=muted?'OFF':'ON';$('sound').setAttribute('aria-label',muted?'Turn sound on':'Turn sound off');};
 window.addEventListener('keydown',e=>{
+  if(state==='surface-loading'){e.preventDefault();return;}
   if(e.target instanceof HTMLInputElement)return;
+  if(state==='surface'){marsSurface.keydown(e);return;}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&!$('map-dialog').open)e.preventDefault();if(e.repeat)return;
   if(e.code==='KeyM'){e.preventDefault();openMap();return;}if($('map-dialog').open)return;
-  if(e.code==='Enter'&&state==='menu'){e.preventDefault();start();return;}
+  if(e.code==='Enter'&&state==='menu'&&!(e.target instanceof HTMLButtonElement)){e.preventDefault();enterMars();return;}
   if(e.code==='KeyP'||e.code==='Escape'){e.preventDefault();pause();return;}
   if(e.code==='KeyF'){interact();return;}if(e.code==='KeyR'){alignCourse();return;}if(e.code==='KeyC'){toggleCruise();return;}if(e.code==='KeyN'){nearestFuel();return;}
   if(state==='flight')keys.add(e.code);
 });
-window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{clearInput();if(state==='flight'&&!$('map-dialog').open)pause();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='flight'&&!$('map-dialog').open)pause();});
+window.addEventListener('keyup',e=>{keys.delete(e.code);marsSurface?.keyup(e);});window.addEventListener('blur',()=>{clearInput();if((state==='flight'||state==='surface')&&!$('map-dialog').open)pause();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(state==='flight'||state==='surface')&&!$('map-dialog').open)pause();});
 function moveStick(e){const r=$('joystick').getBoundingClientRect();stick.x=clamp((e.clientX-r.left-r.width/2)/32,-1,1);stick.y=clamp(-(e.clientY-r.top-r.height/2)/32,-1,1);$('stick').style.transform=`translate(${stick.x*27}px,${-stick.y*27}px)`;}
 $('joystick').addEventListener('pointerdown',e=>{$('joystick').setPointerCapture(e.pointerId);moveStick(e);});$('joystick').addEventListener('pointermove',e=>{if($('joystick').hasPointerCapture(e.pointerId))moveStick(e);});
 for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('joystick').addEventListener(ev,()=>{stick.x=stick.y=0;$('stick').style.transform='';});
@@ -245,24 +283,26 @@ for(const [id,set] of [['touch-boost',v=>boostHeld=v],['touch-brake',v=>brakeHel
 const mars=planetById.get('mars');ship.position.copy(mars.root.position).add(new THREE.Vector3(0,18,mars.radius+125));orient(mars.root.position.clone().sub(ship.position));velocity.copy(orbitalVelocity(mars,simTime));camera.position.copy(ship.position).add(new THREE.Vector3(-10,6,17).applyQuaternion(ship.quaternion));world.resetTrail();refreshRoute();navigation.refreshList(visited,checkpointHits);updateHud();
 function tick(){
   requestAnimationFrame(tick);const elapsed=Math.min(clock.getDelta(),.1);visualTime+=elapsed;
-  const frozen=$('map-dialog').open||state==='paused'||state==='disabled'||state==='menu';
+  const frozen=$('map-dialog').open||state==='paused'||state==='disabled'||state==='menu'||state==='surface-loading'||!!marsSurface?.blocked;
   if(frozen)accumulator=0;
   else{
     accumulator+=elapsed;
-    while(accumulator>=1/60){const dt=1/60;simTime+=dt;world.updatePlanets(simTime);if(state==='flight')simulate(dt);else if(service)updateService(dt);else if(landing)updateDock(dt);accumulator-=dt;}
+    while(accumulator>=1/60){const dt=1/60;simTime+=dt;world.updatePlanets(simTime);if(state==='surface'){marsSurface.update(dt);const p=planetById.get('mars');ship.position.copy(p.root.position).addScaledVector(checkpoint.normal,p.radius+700);}else if(state==='flight')simulate(dt);else if(service)updateService(dt);else if(landing)updateDock(dt);accumulator-=dt;}
     routeTimer+=elapsed;if(routeTimer>3&&state==='flight')refreshRoute();
   }
   model.rotation.y=state==='menu'?Math.sin(visualTime*.35)*.07:0;
-  updateCamera(elapsed);world.animate(visualTime,state==='menu'?22:velocity.length(),boosting&&state==='flight'&&!frozen,!!service||['landed','landing'].includes(state)||state==='paused'&&pausedFrom==='landed');renderer.render(scene,camera);
-  uiAccumulator+=elapsed;if(uiAccumulator>.1){updateHud();updateMarkers();navigation.draw();uiAccumulator=0;}
+  if(isMarsActive())marsSurface.render(elapsed);
+  else{updateCamera(elapsed);world.animate(visualTime,state==='menu'?22:velocity.length(),boosting&&state==='flight'&&!frozen,!!service||['landed','landing'].includes(state)||state==='paused'&&pausedFrom==='landed');renderer.render(scene,camera);}
+  uiAccumulator+=elapsed;if(uiAccumulator>.1){if(!isMarsActive()){updateHud();updateMarkers();navigation.draw();}uiAccumulator=0;}
   toastTime-=elapsed;if(toastTime<=0)$('toast').classList.remove('show');
   if(engineGain){engineGain.gain.setTargetAtTime(!muted&&state==='flight'&&!frozen?(boosting?.05:.02):0,audioCtx.currentTime,.12);engineOsc.frequency.setTargetAtTime(cruise?100:boosting?85:35+Math.min(velocity.length(),200)*.3,audioCtx.currentTime,.15);}
 }
-tick();window.addEventListener('resize',()=>{world.resize();navigation.draw();});
+tick();window.addEventListener('resize',()=>{world.resize();if(marsSurface)marsSurface.resize();else navigation.draw();});
+if(new URLSearchParams(location.search).get('scene')==='mars')enterMars();
 const modelContext=document.modelContext;
 if(modelContext?.registerTool){
   const lifecycle=new AbortController();const register=t=>{try{Promise.resolve(modelContext.registerTool(t,{signal:lifecycle.signal})).catch(()=>{});}catch{}};
-  register({name:'read_expedition_status',description:'Read flight, destination, current fuel stop, fuel, range, hull, and checkpoint.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute(){return {state,mapOpen:$('map-dialog').open,target:selected,nextStop:navigationTarget().name,speed:Math.round(velocity.length()),fuel:Math.round(fuel),rangeAU:fuelRange(fuel)/AU,hull:Math.round(health),cruise,visited:[...visited],checkpoint:checkpoint.name,depots:checkpoints.length};}});
+  register({name:'read_expedition_status',description:'Read flight, destination, current fuel stop, fuel, range, hull, and checkpoint.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute(){return {state,mapOpen:$('map-dialog').open,target:selected,nextStop:navigationTarget().name,speed:Math.round(velocity.length()),fuel:Math.round(fuel),rangeAU:fuelRange(fuel)/AU,hull:Math.round(health),cruise,visited:[...visited],checkpoint:checkpoint.name,depots:checkpoints.length,mars:marsSurface?.status()||null};}});
   register({name:'select_destination',description:'Plot a planet or asteroid depot in the visible navigation HUD. Does not move the ship.',inputSchema:{type:'object',properties:{type:{enum:['planet','checkpoint']},id:{type:'string'}},required:['type','id'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(!input||!['planet','checkpoint'].includes(input.type)||typeof input.id!=='string'||Object.keys(input).length!==2)throw new Error('Supply a destination type and id');selectTarget(input.type,input.id);return {target:selected,name:currentTarget().name};}});
   window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
 }
