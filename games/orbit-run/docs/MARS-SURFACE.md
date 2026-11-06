@@ -1,5 +1,7 @@
 # Hearth Crater — first playable Mars build
 
+The longer-term product direction is a desktop game and eventual Steam release; see the [desktop roadmap](DESKTOP-AND-STEAM-ROADMAP.md). This browser build remains the current prototype.
+
 This milestone implements the first two Mars goals in [the development checklist](DEVELOPMENT-CHECKLIST.md): an explorable settlement with a drivable rover and a short service activity. It introduces a real local terrain scene instead of putting the player on the orbital Mars sphere's tiny landing platform.
 
 ## Play

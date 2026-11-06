@@ -6,7 +6,7 @@
 **Next transport milestone:** lander cinematics and player-controlled orbital docking.
 **Status:** active implementation backlog. Checked Mars items are implemented in the [first playable surface build](MARS-SURFACE.md). Unchecked items remain future work.
 
-This is the maintained task list for the browser game. The original Night Drive car-game documents elsewhere in this repository describe a separate project.
+This is the maintained task list for the solar expedition game. Its long-term target is an installable desktop game and eventual Steam release; the browser remains the current prototype and possible demo. See the [desktop and Steam roadmap](DESKTOP-AND-STEAM-ROADMAP.md). The original Night Drive car-game documents elsewhere in this repository describe a separate project.
 
 ## 1. Requirements from the latest design discussion
 
@@ -21,7 +21,7 @@ These requirements guide the work below:
 - Surface descent and the rocket launch back to orbit are non-interactive, authored cinematic sequences.
 - The launch sequence ends near the main ship. **The player manually docks the lander with the main ship.** The cinematic must not silently complete that docking.
 - Load the destination's specific information and assets as the player approaches/visits it.
-- Define useful activities on each planet/moon/station, while keeping the whole game playable in a browser.
+- Define useful activities on each planet/moon/station. Keep the browser prototype useful for playtests/demo distribution while planning the full product for desktop and eventual Steam release; full feature parity is not assumed.
 - Planet stories follow this foundation. Existing story premises remain drafts until their chapter work begins.
 
 ### Canonical visit loop
@@ -50,7 +50,7 @@ The planned term “recorded animation” describes the non-interactive experien
 - [x] BASE-04 — Full-system, inner-system and local map views support zoom, pan and depot search.
 - [x] BASE-05 — Simulation tests cover scale, route reachability, moving-body interception, fuel and collision/docking helpers.
 
-The present planet-impact damage and pad-landing behavior are baseline implementation details to replace in this backlog. Asteroid and refinery collision rules can remain separate from the safer planetary approach rules.
+The original planet-impact damage has been replaced by a safe stand-off, and Mars now enters a local surface scene. Other worlds retain their prototype landing platforms. Full orbital capture, descent/launch cinematics and manual mothership docking remain future work. Asteroid and refinery collision rules stay separate from the planetary approach rules.
 
 ## 3. Delivery order and completion gates
 
@@ -60,8 +60,9 @@ The present planet-impact damage and pad-landing behavior are baseline implement
 | 2 | A settlement with purpose | Visit the habitat, solar field, workshop and expansion area; complete one short rover activity with a visible result. |
 | 3 | Ship, orbit and lander | Choose Mars from space, capture orbit safely and descend into that same playable settlement. |
 | 4 | Return to space | Launch cinematically, regain lander control, manually dock and resume the main ship. |
-| 5 | Persistence and browser release gate | Reload safely at each stable phase; test loading, frame rate, controls and recovery on target browsers. |
-| 6 | Other destinations and chapters | Reuse the visit system, give each location a distinct activity, then implement its story. |
+| 5 | Persistence and portability | Reload safely at each stable phase; separate platform services, bundle required assets and define input actions. |
+| 6 | Desktop feasibility and stack decision | Test a representative packaged Windows slice, measure it and choose a runtime/engine before scaling up planet content. |
+| 7 | Other destinations and chapters | Use the chosen content pipeline, give each location a distinct activity, then implement its story. |
 
 Scene and vehicle foundations in section 4 support the Mars prototype. We can build and test the surface directly during development before the complete space-to-surface transition exists.
 
@@ -393,7 +394,7 @@ Use CHAPTER-01 through CHAPTER-12 as the specification checklist for each of the
 - [x] WEB-12 — Add captions for required dialogue, readable objective text, contrast-safe indicators and cues beyond color alone.
 - [ ] WEB-13 — Provide reduced-motion/cinematic-skip options and make camera movement adjustable where practical.
 - [ ] WEB-14 — Handle tab suspension, pause/resume and WebGL context loss with a valid restore/checkpoint path.
-- [x] WEB-15 — Keep the initial release compatible with static hosting; document any future backend need separately before depending on it.
+- [x] WEB-15 — Keep the browser prototype/demo compatible with static hosting; document desktop/platform and any future backend requirements separately.
 
 ## 14. Integration and release checks
 
@@ -425,6 +426,40 @@ These are open choices, not blockers to maintaining this backlog or starting the
 - [ ] DECISION-06 — The amount of optional docking assistance, difficulty and controller support in the first release.
 - [ ] DECISION-07 — Whether Mars construction advances only through story milestones or also through optional local activities.
 - [ ] DECISION-08 — Minimum devices/browsers and concrete asset, memory, loading and frame-time budgets.
+
+## 16. Desktop and eventual Steam release
+
+This is a long-term product track, not a completed port. See [runtime options, architecture policy and release gates](DESKTOP-AND-STEAM-ROADMAP.md). Windows-first is the planning default; final operating-system commitments and the engine/runtime are open decisions.
+
+- [ ] DESKTOP-01 — Confirm intended operating systems, target PC classes and the browser demo's role; record what is actually supported.
+- [ ] DESKTOP-02 — Define SaveStore, InputActions, AssetProvider, WindowAndLifecycle and optional PlatformFeatures interfaces.
+- [ ] DESKTOP-03 — Move direct browser storage access behind the save interface and define the complete versioned expedition record.
+- [ ] DESKTOP-04 — Add a native save implementation with safe writes, backup/recovery, migrations and an explicit browser-save transfer decision.
+- [ ] DESKTOP-05 — Replace physical-key-only gameplay bindings with remappable actions across rover, flight, menus and docking.
+- [ ] DESKTOP-06 — Bundle required fonts/assets and verify offline loading without the preview server or a hosted page.
+- [ ] DESKTOP-07 — Establish a bounded packaged Windows slice from the current game as a baseline.
+- [ ] DESKTOP-08 — Assess whether larger terrain, physics, animation and content-authoring needs justify an engine comparison; choose one representative comparison if needed.
+- [ ] DESKTOP-09 — Measure frame times, memory, loading, saves, controls and scene/cinematic/docking behavior on actual target Windows hardware.
+- [ ] DESKTOP-10 — Choose and document the production runtime/engine before authoring the remaining planets at scale; estimate any code/UI/asset port.
+- [ ] DESKTOP-11 — Set source asset formats, units, coordinate conventions, import/export rules and reusable mission/save schemas for that stack.
+- [ ] DESKTOP-12 — Implement fullscreen/window modes, graphics/audio settings, sensitivity, remapping, captions and controller menu navigation.
+- [ ] DESKTOP-13 — Validate focus loss, alt-tab, suspend/resume, pause, clean quit and supported recovery paths in the packaged build.
+- [ ] DESKTOP-14 — Establish repeatable Windows builds and a clean-machine installation/playtest process independent of the development machine.
+- [ ] DESKTOP-15 — Test update/save compatibility and keep settings separate from progression.
+- [ ] DESKTOP-16 — Complete a desktop vertical slice and external playtest before committing to a release date or minimum system requirements.
+
+- [ ] STEAM-01 — Plan publisher onboarding, fees and review lead time from current official requirements when the project is ready.
+- [ ] STEAM-02 — Decide the final product name, supported platforms, scope, pricing approach and accurate store claims.
+- [ ] STEAM-03 — Prepare store artwork, gameplay screenshots, trailer, description, credits and required disclosures.
+- [ ] STEAM-04 — Schedule the Coming Soon page, wishlisting, demo/playtest plan and release milestones using current platform rules.
+- [ ] STEAM-05 — Configure build/depot uploads, private test branches and the Steam update/release pipeline.
+- [ ] STEAM-06 — Choose a maintained native integration path for any Steam APIs used by the selected runtime/engine; do not assume a desktop wrapper supplies it automatically.
+- [ ] STEAM-07 — Evaluate and implement the chosen cloud-save approach, with per-user files, conflict/recovery handling and cross-machine tests.
+- [ ] STEAM-08 — Validate controller mappings, prompts, menu navigation, overlay/focus behavior and Steam Input configuration as appropriate.
+- [ ] STEAM-09 — Define meaningful achievements if wanted, using stable game events and migration-safe unlock state.
+- [ ] STEAM-10 — Test Steam-client launch, offline/unavailable-Steam behavior and the supported save/update paths.
+- [ ] STEAM-11 — Evaluate Steam Deck/Proton separately before claiming compatibility; decide any additional platform release scope.
+- [ ] STEAM-12 — Complete supported-hardware testing, store/build review, player support information and the final release checklist.
 
 ## Maintaining this file
 

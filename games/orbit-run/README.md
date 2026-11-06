@@ -2,6 +2,12 @@
 
 **ORBIT RUN — Solar Explorer** is the browser-game foundation for the proposed **The Third Ring** story. Commit `7d47a88` preserves the original solar-system prototype. The current version expands the world using real mean orbital-distance ratios and adds cruise flight, fuel, and an orbiting asteroid-depot network. See [world scale and fuel policy](docs/WORLD-SCALE.md) for the numbers, sources, and gameplay compromises.
 
+## Long-term target: desktop and Steam
+
+The full game's longer-term goal is an installable desktop release and eventual Steam launch. The current browser build remains our working prototype and a possible demo. The [desktop and Steam roadmap](docs/DESKTOP-AND-STEAM-ROADMAP.md) adds platform/save/input foundations, an early Windows desktop feasibility milestone, a measured runtime/engine decision, and release preparation. Windows-first is the planning default; the final stack and release date are still open.
+
+We will evaluate the desktop path before producing the remaining worlds at scale. Packaging the current game and porting it to a game engine are separate options; neither has been implemented or selected yet.
+
 ## Mars is now playable
 
 Choose **Explore Mars** for [Hearth Crater](docs/MARS-SURFACE.md): a terrain settlement with pressure habitats, a greenhouse, a 216-array solar farm, an unfinished habitat expansion, and a six-wheel rover. Collect a controller at the workshop, restore the east solar field, and inspect the construction site. Rover position, cargo/activity stage and waypoint are saved locally across visits.
