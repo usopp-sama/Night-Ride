@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-7 November 2026: an Electron feasibility baseline now packages the shared game for desktop. Mac ARM64 packaging, desktop Mars rendering and native field-log creation have been verified. A Windows package recipe and manual CI workflow exist; Windows gameplay, full expedition persistence, controller/settings work and Steam integration remain pending. See [setup, verification and Windows handoff](DESKTOP-PROTOTYPE.md). This does not close the production engine decision.
+7 November 2026: an Electron feasibility baseline now packages the shared game for desktop. Mac ARM64 packaging, a complete packaged Mars repair-and-return playthrough, conversations, quit/relaunch persistence and native field-log creation have been verified. A Windows package recipe and manual CI workflow exist; Windows gameplay, full expedition persistence, controller/settings work and Steam integration remain pending. See [setup, verification and Windows handoff](DESKTOP-PROTOTYPE.md). This does not close the production engine decision.
 
 ## Direction
 

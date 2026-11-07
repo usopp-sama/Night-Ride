@@ -478,7 +478,7 @@ This is a long-term product track, not a completed port. See [runtime options, a
 - [x] PARITY-04 — Produce a Mac ARM64 development app and inspect desktop Mars rendering/native file creation.
 - [x] PARITY-05 — Add a Windows portable package recipe and manually triggered CI workflow.
 - [ ] PARITY-06 — Run Windows builds and the full target-hardware verification list; do not infer these results from a Mac launch.
-- [ ] PARITY-07 — Finish the native movement/conversation/relaunch playthrough after the Mac is unlocked.
+- [x] PARITY-07 — Verify the packaged Mac build with rover movement/conversation, quit/relaunch persistence, full local repair activity, departure and orbit-to-surface return. Windows verification remains PARITY-06.
 - [x] HEARTH-01 — Expand terrain and playable radius; retain the original first-job route.
 - [x] HEARTH-02 — Add ten districts, connected service roads, distinct infrastructure and all 16 navigable stops.
 - [x] HEARTH-03 — Add 12 original procedural suited residents, lightweight walking and parked-rover radio interaction.

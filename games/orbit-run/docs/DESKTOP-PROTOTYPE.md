@@ -74,9 +74,9 @@ No credentials, signing certificates or Steam keys are required for this prototy
 
 ## Verification record and remaining Windows gate
 
-**Completed on this Mac:** pure simulation/save tests; browser Mars rendering, distant-destination plotting, departure fade, and field-log discovery restoration; desktop app launch from local bundled-protocol assets; desktop Mars rendering with the expanded stop list; native primary and backup files observed; Mac ARM64 app packaging.
+**Completed on this Mac:** 23 pure simulation/save tests; browser Mars rendering, distant-destination plotting, departure fade, and field-log discovery restoration; Mac ARM64 packaging and launch of the packaged app from bundled local assets; native primary and backup files observed; and a packaged gameplay round trip. The native playthrough covered acceleration, steering and braking, controller pickup and visible cargo, Mara’s captioned conversation, quitting/reopening with cargo/stage/position/waypoint/discovery restored, local atlas access, cargo-preserving recovery, solar delivery and the power change to 78%, third-ring inspection/completion, departure to orbit, approach back to Mars and re-entry with the completed job and four discovery stamps intact.
 
-A native movement/conversation playthrough was interrupted when the Mac locked. Unlocking is required to resume that UI test. This is not a Windows verification result. The optional `desktop:smoke` self-check is available for a suitable desktop session, but it was not recorded as passing in this milestone.
+These are manual Mac packaged-app results, not Windows verification. Every new district route, target-hardware performance, controller support, long suspend/resume and complete expedition persistence still need their separate checks. The optional `desktop:smoke` self-check was not used as evidence for this native playthrough.
 
 Run these on the Windows PC before claiming Windows support:
 
