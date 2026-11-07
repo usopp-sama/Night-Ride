@@ -1,5 +1,7 @@
 import {makeWorld,THREE} from './scene.js';
 import {AU,FLIGHT,SYSTEM_RADIUS,SUN_RADIUS,orbitalVelocity,leadPosition,segmentSphereEntry,canLand,canDock,burnFuel,fuelRange,planRoute} from './simulation.js';
+import {flushSaves} from './platform.js';
+import {createSceneBridge} from './transitions.js';
 import {makeNavigation} from './navigation.js';
 const $=id=>document.getElementById(id),clamp=THREE.MathUtils.clamp;
 let world;
@@ -8,7 +10,8 @@ const {camera,renderer,scene,ship,model,planets,rocks,checkpoints,pad}=world;
 const planetById=new Map(planets.map(p=>[p.id,p])),depotById=new Map(checkpoints.map(c=>[c.id,c]));
 const clock=new THREE.Clock(),velocity=new THREE.Vector3(),up=new THREE.Vector3(0,1,0),forward=new THREE.Vector3(0,0,-1),origin=new THREE.Vector3(),keys=new Set(),stick={x:0,y:0};
 let marsSurface=null;
-const isMarsActive=()=>state==='surface'||state==='paused'&&pausedFrom==='surface';
+const bridge=createSceneBridge();
+const isMarsActive=()=>state==='surface'||state==='paused'&&pausedFrom==='surface'||state==='surface-loading'&&!!marsSurface;
 let state='menu',simTime=0,visualTime=0,yaw=0,pitch=0,throttle=.35,energy=100,fuel=100,health=100;
 let invulnerable=0,toastTime=0,alignTime=0,boostHeld=false,brakeHeld=false,boosting=false,cruise=false,approachBrake=0;
 let selected={type:'planet',id:'mars'},route=null,routeTimer=0,landing=null,service=null,transitionTime=0,pausedFrom='flight',mapReturnFocus=null;
@@ -48,12 +51,12 @@ function start(){
   state='flight';orient(ship.position.clone().sub(planetById.get('mars').root.position));clearInput();$('menu').hidden=true;$('flight-ui').hidden=false;$('pause').hidden=false;$('cruise').hidden=false;$('landing-panel').hidden=true;document.body.classList.add('flying');$('touch').hidden=!matchMedia('(pointer:coarse)').matches;world.resetTrail();refreshRoute();updateHud();notify('Depart Mars · M plots your route · N finds fuel · C engages cruise');if(!muted)try{audioStart();}catch{}
 }
 async function enterMars(){
-  if(isMarsActive()||state==='surface-loading')return;
+  if(isMarsActive()||state==='surface-loading'||bridge.busy)return;
   const priorState=state;state='surface-loading';if($('map-dialog').open)$('map-dialog').close();if($('pause-dialog').open)$('pause-dialog').close();clearInput();cruise=false;boosting=false;approachBrake=0;
-  toastTime=0;$('toast').classList.remove('show');$('surface-loading-text').textContent='Preparing Hearth Crater arrival';$('surface-loading').hidden=false;
+  toastTime=0;$('toast').classList.remove('show');await bridge.cover('Next stop: Hearth Crater',priorState==='menu'?'HEARTH / Preparing your rover and field log.':'MARS CONTROL / Surface link confirmed. Transferring to your rover.');
   try{
     const {createMarsSurface}=await import('./mars.js');
-    marsSurface=createMarsSurface({renderer,onReturnToOrbit:leaveMars,onPause:pause,onNotify:notify,getMuted:()=>muted});
+    marsSurface=await createMarsSurface({renderer,onReturnToOrbit:leaveMars,onPause:pause,onNotify:notify,getMuted:()=>muted});
     landing=service=null;pad.visible=false;velocity.set(0,0,0);state='surface';visited.add('mars');
     checkpoint={type:'planet',id:'mars',normal:new THREE.Vector3(0,.13,1).normalize(),altitude:700,name:'Hearth Crater departure orbit'};
     for(const id of ['menu','flight-ui','landing-panel','touch','cruise'])$(id).hidden=true;
@@ -65,10 +68,13 @@ async function enterMars(){
     document.querySelector('.sector').innerHTML='SOL SYSTEM <i></i> DEEP SPACE';document.querySelector('.brand small').textContent='SOLAR EXPLORER';$('map-button').querySelector('span').textContent='System map';
     $('menu').hidden=priorState!=='menu';$('flight-ui').hidden=priorState==='menu';$('pause').hidden=priorState==='menu';$('cruise').hidden=priorState==='menu';
     notify('Mars could not be loaded. Please try again.');console.error('Mars scene load failed',error);
-  }finally{$('surface-loading').hidden=true;}
+  }finally{await bridge.reveal();clearInput();}
 }
-function leaveMars(){
-  if(!isMarsActive())return;
+async function leaveMars(){
+  if(!isMarsActive()||bridge.busy)return;
+  clearInput();state='surface-loading';
+  await bridge.cover('Returning to departure orbit','HEARTH / Securing the rover and saving your field log.');
+  try {await marsSurface.saveNow();} catch {state='surface';await bridge.reveal();notify('Departure held: your field log could not be saved. Please try again.');return;}
   marsSurface.exit();marsSurface=null;clearInput();$('space').setAttribute('aria-label','Three-dimensional solar system');$('pause').setAttribute('aria-label','Pause flight');
   const p=planetById.get('mars'),normal=new THREE.Vector3(0,.13,1).normalize();
   ship.position.copy(p.root.position).addScaledVector(normal,p.radius+700);orient(normal);velocity.copy(orbitalVelocity(p,simTime));
@@ -76,6 +82,7 @@ function leaveMars(){
   $('flight-ui').hidden=false;$('pause').hidden=false;$('cruise').hidden=false;$('landing-panel').hidden=true;$('touch').hidden=!matchMedia('(pointer:coarse)').matches;document.body.classList.add('flying');
   document.querySelector('.sector').innerHTML='SOL SYSTEM <i></i> DEEP SPACE';document.querySelector('.brand small').textContent='SOLAR EXPLORER';$('map-button').querySelector('span').textContent='System map';
   camera.position.copy(ship.position).add(new THREE.Vector3(0,5,20).applyQuaternion(ship.quaternion));world.resetTrail();refreshRoute();updateHud();notify('Back in Mars departure orbit. Your rover and surface progress are saved.');
+  await bridge.reveal();clearInput();
 }
 function nearestPlanet(){
   let result=null;
@@ -105,6 +112,7 @@ function pause(){
   pausedFrom=state;state='paused';clearInput();$('pause-title').innerHTML='A moment<br>among the stars.';$('pause-text').textContent='Need assistance? Rescue returns you to your last port with a full tank.';$('resume').innerHTML='Resume expedition <span>↗</span>';$('respawn').hidden=false;$('respawn').textContent=pausedFrom==='surface'?'Recover rover to lander':'Request rescue to last port';if(pausedFrom==='surface')$('pause-text').textContent='Your rover and field log are safe. Recovery returns the rover to the lander berth.';$('pause-dialog').showModal();
 }
 function openMap(){
+  if(bridge.busy)return;
   if(isMarsActive()){if(state==='paused')pause();marsSurface.openMap();return;}
   if(['landing','takeoff','disabled','surface-loading'].includes(state))return;
   if($('map-dialog').open){closeMap();return;}
@@ -264,7 +272,7 @@ $('align').onclick=alignCourse;$('land').onclick=interact;$('takeoff').onclick=i
 $('map-dialog').addEventListener('cancel',e=>{e.preventDefault();closeMap();});$('pause-dialog').addEventListener('cancel',e=>{e.preventDefault();if(state==='paused')pause();});
 $('sound').onclick=()=>{muted=!muted;try{if(!muted)audioStart();}catch{muted=true;notify('Audio is unavailable in this browser.');}$('sound-label').textContent=muted?'OFF':'ON';$('sound').setAttribute('aria-label',muted?'Turn sound on':'Turn sound off');};
 window.addEventListener('keydown',e=>{
-  if(state==='surface-loading'){e.preventDefault();return;}
+  if(state==='surface-loading'||bridge.busy){e.preventDefault();return;}
   if(e.target instanceof HTMLInputElement)return;
   if(state==='surface'){marsSurface.keydown(e);return;}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&!$('map-dialog').open)e.preventDefault();if(e.repeat)return;
@@ -283,7 +291,7 @@ for(const [id,set] of [['touch-boost',v=>boostHeld=v],['touch-brake',v=>brakeHel
 const mars=planetById.get('mars');ship.position.copy(mars.root.position).add(new THREE.Vector3(0,18,mars.radius+125));orient(mars.root.position.clone().sub(ship.position));velocity.copy(orbitalVelocity(mars,simTime));camera.position.copy(ship.position).add(new THREE.Vector3(-10,6,17).applyQuaternion(ship.quaternion));world.resetTrail();refreshRoute();navigation.refreshList(visited,checkpointHits);updateHud();
 function tick(){
   requestAnimationFrame(tick);const elapsed=Math.min(clock.getDelta(),.1);visualTime+=elapsed;
-  const frozen=$('map-dialog').open||state==='paused'||state==='disabled'||state==='menu'||state==='surface-loading'||!!marsSurface?.blocked;
+  const frozen=bridge.busy||$('map-dialog').open||state==='paused'||state==='disabled'||state==='menu'||state==='surface-loading'||!!marsSurface?.blocked;
   if(frozen)accumulator=0;
   else{
     accumulator+=elapsed;
@@ -306,3 +314,5 @@ if(modelContext?.registerTool){
   register({name:'select_destination',description:'Plot a planet or asteroid depot in the visible navigation HUD. Does not move the ship.',inputSchema:{type:'object',properties:{type:{enum:['planet','checkpoint']},id:{type:'string'}},required:['type','id'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(!input||!['planet','checkpoint'].includes(input.type)||typeof input.id!=='string'||Object.keys(input).length!==2)throw new Error('Supply a destination type and id');selectTarget(input.type,input.id);return {target:selected,name:currentTarget().name};}});
   window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
 }
+
+window.orbitDesktop?.onBeforeQuit(async()=>{clearInput();await marsSurface?.saveNow();await flushSaves();});

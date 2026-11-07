@@ -74,3 +74,23 @@ test('the rendered service-road centre lines clear all facility and stock collis
   }
   for(const rock of MARS_ROCKS)assert.ok(distanceToRoad(rock.x,rock.z)>=18+rock.size,'rocks must not spawn in service roads');
 });
+
+test('expanded districts are connected to the original campus and have accessible stops',async()=>{
+  const {DISTRICTS,CREW,crewPosition}=await import('../dist/mars-world.js');
+  assert.equal(SITES.length,16);assert.equal(DISTRICTS.length,10);assert.equal(CREW.length,12);
+  for(const site of SITES){assert.ok(Math.hypot(site.x,site.z)<MARS_LIMIT);assert.ok(distanceToRoad(site.x,site.z)<35,site.id+' needs a road approach');}
+  const curves=ROADS.map(road=>new CatmullRomCurve3(road.map(([x,z])=>new Vector3(x,0,z))));
+  const samples=curves.map(c=>Array.from({length:201},(_,i)=>c.getPoint(i/200)));
+  const connected=new Set([0]);let changed=true;
+  while(changed){changed=false;for(let i=0;i<samples.length;i++)if(!connected.has(i)){
+    if([...connected].some(j=>samples[i].some(a=>samples[j].some(b=>a.distanceTo(b)<15)))){connected.add(i);changed=true;}
+  }}
+  assert.equal(connected.size,ROADS.length,'every service road joins the usable road network');
+  for(const person of CREW)for(let time=0;time<40;time+=.5){const p=crewPosition(person,time);assert.equal(collides(p.x,p.z,.5),false,person.id+' EVA path clips a facility');}
+});
+
+test('older field logs gain empty discovery lists; new logs sanitize unknown and duplicate stops',()=>{
+  const old=decodeMarsSave(JSON.stringify({version:1,stage:2,rover:ROVER_SPAWN}));assert.deepEqual(old.visited,[]);assert.equal(old.stage,2);
+  const latest=decodeMarsSave(JSON.stringify({version:1,stage:2,rover:ROVER_SPAWN,visited:['water','workshop','water','unknown',null]}));
+  assert.deepEqual(latest.visited,['water','workshop']);assert.equal(latest.stage,2);
+});

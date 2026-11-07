@@ -1,3 +1,11 @@
+# Expanded Mars milestone — 7 November 2026
+
+Hearth now has a 2,200 m playable radius, 16 stops, 19 habitat modules and 12 named EVA residents. The original repair chain remains intact. New districts provide exploration, conversations and saved discovery stamps; they do not yet add ten full mission chains. The new atlas includes all destinations and a selector, while the minimap follows the rover.
+
+Read [settlement research and district policy](MARS-SETTLEMENT-RESEARCH.md), [scene bridge design](SCENE-BRIDGES.md), and [desktop setup/Windows verification](DESKTOP-PROTOTYPE.md). Browser and desktop now share the same game assets. Below is the original first-slice description; its smaller campus measurements describe that earlier baseline rather than the current expanded map.
+
+---
+
 # Hearth Crater — first playable Mars build
 
 The longer-term product direction is a desktop game and eventual Steam release; see the [desktop roadmap](DESKTOP-AND-STEAM-ROADMAP.md). This browser build remains the current prototype.

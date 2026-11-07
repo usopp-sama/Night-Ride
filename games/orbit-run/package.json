@@ -1,6 +1,20 @@
 {
   "name": "orbit-run-solar-expedition",
+  "productName": "Orbit Run",
+  "version": "0.2.0",
+  "description": "The Third Ring — a solar expedition prototype",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test tests/*.test.js" }
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "desktop": "electron .",
+    "desktop:smoke": "electron . --smoke-test",
+    "desktop:package": "node scripts/package-desktop.mjs",
+    "desktop:package:win": "node scripts/package-desktop.mjs --win"
+  },
+  "devDependencies": {
+    "electron": "45.2.3",
+    "@electron/packager": "20.3.0"
+  }
 }

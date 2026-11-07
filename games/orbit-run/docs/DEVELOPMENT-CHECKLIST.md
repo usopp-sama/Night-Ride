@@ -468,3 +468,29 @@ This is a long-term product track, not a completed port. See [runtime options, a
 - When a larger item is split, retain its original ID and add scoped sub-items or links rather than silently changing its meaning.
 - Update the location/chapter table and the world-scale document when a later decision supersedes their current behavior.
 - Keep new discoveries and decisions beside the affected task. Record the implementation commit when a milestone is completed.
+
+
+## 17. Shared desktop and expanded Hearth milestone — 7 November 2026
+
+- [x] PARITY-01 — Package the actual shared web game files for desktop; avoid a second divergent implementation.
+- [x] PARITY-02 — Add isolated desktop loading, a narrow save bridge and local/offline assets.
+- [x] PARITY-03 — Implement ordered native Mars field logs with temporary writes, backup recovery and a close/departure save drain.
+- [x] PARITY-04 — Produce a Mac ARM64 development app and inspect desktop Mars rendering/native file creation.
+- [x] PARITY-05 — Add a Windows portable package recipe and manually triggered CI workflow.
+- [ ] PARITY-06 — Run Windows builds and the full target-hardware verification list; do not infer these results from a Mac launch.
+- [ ] PARITY-07 — Finish the native movement/conversation/relaunch playthrough after the Mac is unlocked.
+- [x] HEARTH-01 — Expand terrain and playable radius; retain the original first-job route.
+- [x] HEARTH-02 — Add ten districts, connected service roads, distinct infrastructure and all 16 navigable stops.
+- [x] HEARTH-03 — Add 12 original procedural suited residents, lightweight walking and parked-rover radio interaction.
+- [x] HEARTH-04 — Persist discovery stamps and accept older field logs without losing job progress.
+- [x] HEARTH-05 — Batch static infrastructure and retain instanced rocks/arrays for the larger map.
+- [x] HEARTH-06 — Record primary research, realism compromises and future activity ideas.
+- [ ] HEARTH-07 — Playtest every new district route, readability and conversation on Windows; set measured performance budgets.
+- [ ] HEARTH-08 — Add optional inter-district activities with visible results, rather than expanding only the scenery.
+- [x] BRIDGE-01 — Replace the immediate Mars swap with a shared fade/radio handoff, held controls and a rendered-destination reveal.
+- [x] BRIDGE-02 — Document orbit capture, authored descent/launch, manual docking, save boundaries, skip/failure paths and implementation order.
+- [ ] BRIDGE-03 — Build a greybox orbital scene and Mars arrival/departure camera tracks.
+- [ ] BRIDGE-04 — Add playable shuttle rendezvous/docking and retry without replaying launch.
+- [ ] BRIDGE-05 — Persist complete expedition/transport state and verify watched, skipped, paused and failed round trips.
+
+This milestone partially advances DESKTOP-02/03/04/06/13/14. Those earlier broad tasks remain unchecked because complete expedition persistence, input abstraction, clean-machine Windows verification and full lifecycle coverage are not finished.

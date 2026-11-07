@@ -1,15 +1,17 @@
 import * as THREE from './vendor/three.module.js';
-import {MARS_SAVE_KEY,ROVER_SPAWN,SITES,SITE_BY_ID,HABITATS,SOLAR,ROADS,MARS_ROCKS,terrainHeight,solarPositions,collides,stepRover,missionForStage,canInteract,interactMars,decodeMarsSave} from './mars-world.js';
+import {MARS_SAVE_KEY,ROVER_SPAWN,SITES,SITE_BY_ID,HABITATS,DISTRICTS,CREW,crewPosition,nearbyCrew,SOLAR,ROADS,MARS_ROCKS,terrainHeight,solarPositions,collides,stepRover,missionForStage,canInteract,interactMars,decodeMarsSave} from './mars-world.js';
+
+import {readSave,writeSave,flushSaves} from './platform.js';
 
 // One local scene, sharing the game's renderer and fixed-step loop.
-export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,getMuted}){
+export async function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,getMuted}){
   const $=id=>document.getElementById(id),clamp=THREE.MathUtils.clamp;
-  let stored=null;try{stored=localStorage.getItem(MARS_SAVE_KEY);}catch{}
-  const saved=decodeMarsSave(stored);let roverState=saved.rover,stage=saved.stage,targetId=saved.target;
+  const stored=await readSave(MARS_SAVE_KEY);
+  const saved=decodeMarsSave(stored);let roverState=saved.rover,stage=saved.stage,targetId=saved.target;const visitedSites=new Set(saved.visited);
   let active=false,time=0,saveTimer=0,hudTimer=0,messageTimer=0,overview=false,cameraYaw=0,cameraPitch=.32,cameraDistance=17,drag=null;
   let localAudio=null,motor=null,motorGain=null;
   const keys=new Set(),touch=new Set(),cleanup=[],siteSprites=[],beacons=[];
-  const scene=new THREE.Scene();scene.background=new THREE.Color('#bd8b71');scene.fog=new THREE.FogExp2('#c69b7e',.00072);
+  const scene=new THREE.Scene();scene.background=new THREE.Color('#bd8b71');scene.fog=new THREE.FogExp2('#c69b7e',.00028);
   const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.2,6500);
   scene.add(new THREE.HemisphereLight('#d4d7dd','#723b2a',2.3));
   const sunlight=new THREE.DirectionalLight('#ffe3b1',3.3);sunlight.position.set(-220,300,130);sunlight.castShadow=true;sunlight.shadow.mapSize.set(2048,2048);sunlight.shadow.camera.left=-140;sunlight.shadow.camera.right=140;sunlight.shadow.camera.top=140;sunlight.shadow.camera.bottom=-140;sunlight.shadow.camera.near=1;sunlight.shadow.camera.far=700;sunlight.shadow.bias=-.0003;sunlight.shadow.normalBias=.12;scene.add(sunlight,sunlight.target);
@@ -38,7 +40,7 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
   function sign(text,x,y,z,w=15,parent=scene){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,w/6),new THREE.MeshBasicMaterial({map:textTexture(text)}));m.position.set(x,y,z);parent.add(m);return m;}
   function label(text,site){const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:textTexture(text,'#243b41','#c7eadb'),transparent:false,depthTest:true}));sprite.position.set(site.x,terrainHeight(site.x,site.z)+6,site.z);sprite.scale.set(6,1,1);scene.add(sprite);siteSprites.push({sprite,site});}
 
-  const terrainGeo=new THREE.PlaneGeometry(2700,2700,200,200);terrainGeo.rotateX(-Math.PI/2);const p=terrainGeo.attributes.position,colors=[];
+  const terrainGeo=new THREE.PlaneGeometry(5500,5500,260,260);terrainGeo.rotateX(-Math.PI/2);const p=terrainGeo.attributes.position,colors=[];
   const low=new THREE.Color('#9b5940'),high=new THREE.Color('#c98c65'),color=new THREE.Color();
   for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),h=terrainHeight(x,z);p.setY(i,h);const mix=.38+.2*Math.sin(x*.026+z*.019)+.15*Math.cos(x*.08-z*.04)+Math.min(h/180,.3);color.copy(low).lerp(high,clamp(mix,0,1));colors.push(color.r,color.g,color.b);}
   const soilCanvas=document.createElement('canvas');soilCanvas.width=soilCanvas.height=256;const soilCtx=soilCanvas.getContext('2d'),soilPixels=soilCtx.createImageData(256,256);let soilSeed=91;
@@ -49,7 +51,7 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
     const curve=new THREE.CatmullRomCurve3(points.map(([x,z])=>new THREE.Vector3(x,0,z))),positions=[],uv=[],indices=[];
     for(let i=0;i<=160;i++){
       const t=i/160,q=curve.getPoint(t),d=curve.getTangent(t),nx=-d.z,nz=d.x;
-      for(const side of [-1,1]){const x=q.x+nx*4.5*side,z=q.z+nz*4.5*side;positions.push(x,terrainHeight(x,z)+.09,z);uv.push(side<0?0:1,t*20);}
+      for(const side of [-1,1]){const x=q.x+nx*4.5*side,z=q.z+nz*4.5*side;positions.push(x,terrainHeight(x,z)+.45,z);uv.push(side<0?0:1,t*20);}
       if(i<160){const n=i*2;indices.push(n,n+2,n+1,n+1,n+2,n+3);}
     }
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:'#b38c6d',roughness:1,side:THREE.DoubleSide}));m.receiveShadow=true;scene.add(m);
@@ -76,6 +78,8 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
     sign(`HEARTH / HAB ${String(i+1).padStart(2,'0')}`,0,11,15.4,9,root);
     for(const x of [-4,4])for(const z of [-9,9])cylinder(.45,2.2,materials.dark,[x,1.6,z],root);
     box(8,.6,11,materials.dark,[0,14,0],root);
+    if(i>=4){for(const side of [-1,1]){const berm=box(3,8,32,materials.concrete,[side*7.6,3.8,-1],root);berm.rotation.z=side*-.22;}box(17,2,28,materials.concrete,[0,14.3,-2],root);}
+
   }
   for(const [x,z] of [[6,-25],[6,-78]]){const root=groundGroup(x,z);box(28,3.5,5,materials.white,[0,10.5,0],root);box(28,.4,3.5,materials.window,[0,12.4,0],root);}
   const spine=groundGroup(-14,-51.5);box(5,3.5,28,materials.white,[0,10.5,0],spine);box(3.5,.4,28,materials.window,[0,12.4,0],spine);
@@ -150,6 +154,108 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
   for(let i=0;i<4;i++){const a=i*Math.PI/2,x=Math.cos(a)*5,z=Math.sin(a)*5;const leg=cylinder(.2,5,materials.steel,[x*.72,3,z*.72],lander,6);leg.rotation.z=-Math.cos(a)*.55;leg.rotation.x=Math.sin(a)*.55;box(3,.25,2,materials.dark,[x,.6,z],lander);}
   sign('KESTREL / SURFACE LINK',0,7.5,3.25,7,lander);
 
+  // District silhouettes are authored from shared primitives; all infrastructure is local/offline.
+  for(const d of DISTRICTS){
+    const root=groundGroup(d.bx,d.bz);
+    if(d.kind==='homes'){sign('WEST QUARTER / A PLACE TO STAY',0,5,105,38,root);continue;}
+    box(d.hx*2,1,d.hz*2,materials.concrete,[0,.3,0],root);
+    if(['water','oxygen','reactor'].includes(d.kind)){
+      box(26,10,22,materials.white,[-d.hx*.35,5.5,-5],root);
+      box(28,1.2,24,materials.dark,[-d.hx*.35,11,-5],root);
+      for(let i=0;i<4;i++){
+        const x=8+i*9; cylinder(3.8,14,materials.white,[x,7.5,-10],root,16);
+        cylinder(3.95,1,materials.orange,[x,10,-10],root,16);
+        mesh(new THREE.SphereGeometry(3.8,12,8),materials.white,[x,14.3,-10],root).scale.y=.4;
+        cylinder(.35,9,materials.steel,[x,4.5,5],root,6);
+      }
+      for(let i=0;i<5;i++)box(3,6,10,materials.dark,[-30+i*13,3.5,20],root);
+      if(d.kind==='reactor'){
+        for(const side of [-1,1])box(9,10,65,materials.concrete,[side*40,4,-2],root);
+        box(82,10,9,materials.concrete,[0,4,-31],root);
+        cylinder(6,18,materials.steel,[-10,9,-5],root,16);
+      }
+    } else if(d.kind==='farm'){
+      for(const x of [-39,0,39]){
+        box(32,8,62,materials.white,[x,4.5,-2],root);box(34,1.5,64,materials.dark,[x,9,-2],root);
+        for(let i=0;i<5;i++)box(27,.2,7,materials.window,[x,9.9,-24+i*12],root);
+        box(20,4,.4,materials.window,[x,5,29.3],root);box(5,6,5,materials.orange,[x,3,33],root);
+      }
+    } else if(d.kind==='freight'){
+      for(let r=0;r<3;r++)for(let i=0;i<6;i++){
+        const x=-55+i*21,z=-22+r*22;box(17,6,12,(i+r)%3?materials.white:materials.orange,[x,3.5,z],root);
+        for(const dx of [-7,7])box(.3,5.5,12.2,materials.steel,[x+dx,3.5,z],root);
+      }
+      box(120,2,3,materials.yellow,[0,24,0],root);for(const x of [-58,58])box(2,24,3,materials.yellow,[x,12,0],root);
+    } else if(d.kind==='quarry'){
+      box(90,2,52,materials.concrete,[0,1,0],root);
+      for(const x of [-44,44])box(3,23,3,materials.yellow,[x,12,0],root);
+      box(91,3,3,materials.yellow,[0,24,0],root);box(3,14,3,materials.dark,[10,17,0],root);
+      for(let i=0;i<5;i++){box(10,2+i*.5,18,materials.concrete,[-30+i*16,2,-15],root);}
+      for(let i=0;i<4;i++)box(12,6,12,materials.orange,[-30+i*19,3,16],root);
+    } else if(d.kind==='shelter'){
+      const mound=mesh(new THREE.SphereGeometry(1,24,12),materials.concrete,[0,0,-2],root);mound.scale.set(42,19,32);
+      box(17,8,14,materials.white,[0,4,28],root);box(8,6,1,materials.dark,[0,3,35.2],root);box(5,4,1,materials.warm,[0,3,35.8],root);
+    } else {
+      box(56,10,42,materials.white,[0,5.5,0],root);box(58,1,44,materials.dark,[0,11,0],root);
+      box(38,3,.4,materials.window,[0,7,21.2],root);box(9,7,8,materials.orange,[0,3.8,23],root);
+      for(const x of [-20,20])cylinder(3,8,materials.steel,[x,15,0],root);
+      if(d.kind==='science'){
+        const antenna=mesh(new THREE.SphereGeometry(12,20,12,0,Math.PI*2,0,Math.PI*.4),materials.white,[0,21,0],root);antenna.rotation.x=.65;
+        cylinder(.4,28,materials.steel,[0,14,-7],root);
+      } else {box(9,2,1,materials.cyan,[-15,7,21.7],root);box(2,8,1,materials.cyan,[-15,7,21.8],root);}
+    }
+    sign(d.short,0,7,d.hz+1,Math.min(d.hx*1.5,40),root);
+  }
+  // Bake repeated static primitives into one mesh per material. Signs, translucent
+  // glass, instanced arrays and mission/crane components retain independent state.
+  const excluded=new Set([serviceCrate,powerLight,fieldStatusBoard,...constructionLights]);
+  scene.updateMatrixWorld(true);const batches=new Map();
+  scene.traverse(o=>{
+    if(!o.isMesh||o.isInstancedMesh||excluded.has(o)||!Object.values(materials).includes(o.material))return;
+    for(let parent=o.parent;parent;parent=parent.parent)if(parent===craneArm)return;
+    const list=batches.get(o.material)||[];list.push(o);batches.set(o.material,list);
+  });
+  for(const [material,list] of batches){
+    const baked=list.map(o=>{const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();return g.applyMatrix4(o.matrixWorld);});
+    const merged=new THREE.BufferGeometry();
+    for(const [name,size] of [['position',3],['normal',3],['uv',2]]){
+      const length=baked.reduce((n,g)=>n+g.attributes[name].array.length,0),array=new Float32Array(length);let offset=0;
+      for(const g of baked){array.set(g.attributes[name].array,offset);offset+=g.attributes[name].array.length;}merged.setAttribute(name,new THREE.BufferAttribute(array,size));
+    }
+    merged.computeBoundingSphere();const m=new THREE.Mesh(merged,material);m.castShadow=true;m.receiveShadow=true;scene.add(m);
+    const oldGeometries=new Set(list.map(o=>o.geometry));for(const o of list)o.removeFromParent();for(const g of [...oldGeometries,...baked])g.dispose();
+  }
+
+  // Residents wear EVA suits outdoors. They use radio conversations from the rover;
+  // interior exploration, schedules and on-foot gameplay remain a later milestone.
+  const residents=CREW.map(person=>{
+    const root=new THREE.Group();scene.add(root);
+    const suit=new THREE.MeshStandardMaterial({color:person.color,roughness:.8});
+    box(.85,.95,.5,suit,[0,1.35,0],root);box(.55,.65,.3,materials.white,[0,1.4,.35],root);
+    mesh(new THREE.SphereGeometry(.34,12,8),materials.white,[0,2.1,0],root);
+    const visor=mesh(new THREE.SphereGeometry(.3,12,8),materials.window,[0,2.11,-.12],root);visor.scale.set(1,.7,.65);
+    box(.48,.26,.05,materials.orange,[0,1.55,-.28],root);
+    const legs=[],arms=[];
+    for(const side of [-1,1]){
+      const leg=new THREE.Group();leg.position.set(side*.23,.93,0);root.add(leg);box(.3,.73,.33,suit,[0,-.35,0],leg);box(.35,.2,.56,materials.dark,[0,-.8,-.08],leg);legs.push(leg);
+      const arm=new THREE.Group();arm.position.set(side*.57,1.77,0);root.add(arm);box(.25,.75,.28,suit,[0,-.35,0],arm);mesh(new THREE.SphereGeometry(.15,8,6),materials.white,[0,-.8,0],arm);arms.push(arm);
+    }
+    return {person,root,legs,arms};
+  });
+  function updateCrew(){
+    for(const {person,root,legs,arms} of residents){
+      const p=crewPosition(person,time),near=Math.hypot(p.x-roverState.x,p.z-roverState.z)<22;
+      root.position.set(p.x,terrainHeight(p.x,p.z),p.z);root.rotation.y=near?Math.atan2(p.x-roverState.x,p.z-roverState.z):p.heading;
+      const swing=near?0:Math.sin(time*2.1+CREW.indexOf(person))*.22;
+      legs.forEach((leg,i)=>leg.rotation.x=swing*(i?1:-1));arms.forEach((arm,i)=>arm.rotation.x=-swing*(i?1:-1));
+      root.visible=overview||Math.hypot(p.x-roverState.x,p.z-roverState.z)<500;
+    }
+  }
+  function talk(){
+    const near=nearbyCrew(roverState,time);if(!near||Math.abs(roverState.speed)>=1.6)return;
+    radio(`${near.person.name.toUpperCase()} / ${near.person.role}: ${near.person.line}`);messageTimer=18;
+  }
+
   // Six-wheel utility rover, including independent wheel terrain contact.
   const rover=new THREE.Group(),body=new THREE.Group();rover.add(body);scene.add(rover);
   box(4.7,1.2,6,materials.dark,[0,1.7,0],body);box(4.4,.8,5.8,materials.white,[0,2.5,0],body);
@@ -177,17 +283,28 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
   for(const site of SITES){const root=groundGroup(site.x,site.z);const ring=mesh(new THREE.TorusGeometry(2,.11,5,32),materials.cyan,[0,.18,0],root);ring.rotation.x=Math.PI/2;beacons.push({root,ring,site});label(site.short,site);}
 
   const waypointList=$('mars-waypoints');waypointList.replaceChildren();
-  for(const site of SITES){const button=document.createElement('button');button.dataset.site=site.id;button.className='mars-waypoint';button.innerHTML=`<i style="--site-color:${site.color}"></i><span>${site.name}</span><small></small>`;button.onclick=()=>{targetId=site.id;save();refreshHud();};waypointList.appendChild(button);}
-  function save(){try{localStorage.setItem(MARS_SAVE_KEY,JSON.stringify({version:1,stage,rover:roverState,target:targetId}));$('mars-save-state').textContent='FIELD LOG SAVED';}catch{$('mars-save-state').textContent='SESSION LOG';}}
+  for(const site of SITES){const button=document.createElement('button');button.dataset.site=site.id;button.className='mars-waypoint';button.innerHTML=`<i style="--site-color:${site.color}"></i><span>${site.name}</span><small></small>`;button.onclick=()=>{targetId=site.id;autosave();refreshHud();};waypointList.appendChild(button);}
+  const destinationPicker=$('mars-map-destination');
+  destinationPicker.replaceChildren(...SITES.map(site=>{const option=document.createElement('option');option.value=site.id;option.textContent=site.name;return option;}));
+  destinationPicker.onchange=()=>{targetId=destinationPicker.value;autosave();refreshHud();};
+  const pickOnMap=e=>{
+    const canvas=$('mars-map'),rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height,scale=Math.min((w-90)/2550,(h-80)/2050),cx=w/2-100*scale,cy=h/2+250*scale;
+    const x=(e.clientX-rect.left-cx)/scale,z=(e.clientY-rect.top-cy)/scale;
+    const site=SITES.reduce((best,s)=>Math.hypot(x-s.x,z-s.z)<Math.hypot(x-best.x,z-best.z)?s:best);
+    if(Math.hypot(x-site.x,z-site.z)*scale<20){targetId=site.id;autosave();refreshHud();}
+  };
+  $('mars-map').addEventListener('click',pickOnMap);cleanup.push(()=>$('mars-map').removeEventListener('click',pickOnMap));
+  function save(){return writeSave(MARS_SAVE_KEY,JSON.stringify({version:1,stage,rover:roverState,target:targetId,visited:[...visitedSites]})).then(()=>{$('mars-save-state').textContent=`FIELD LOG SAVED · ${visitedSites.size} / ${SITES.length} STOPS`;},error=>{$('mars-save-state').textContent='SAVE UNAVAILABLE';console.warn('Field log could not be saved',error);throw error;});}
+  const autosave=()=>save().catch(()=>{});
   function clearInput(){keys.clear();touch.clear();drag=null;if(motorGain&&localAudio)motorGain.gain.setTargetAtTime(0,localAudio.currentTime,.05);}
-  function reset(){roverState={...ROVER_SPAWN};clearInput();placeRover(0);save();onNotify('Rover recovered to the lander berth. Your cargo and progress are safe.');}
+  function reset(){roverState={...ROVER_SPAWN};clearInput();placeRover(0);autosave();onNotify('Rover recovered to the lander berth. Your cargo and progress are safe.');}
   function radio(message){$('mars-radio-text').textContent=message;$('mars-radio').hidden=false;messageTimer=10;}
   function nearestSite(){return SITES.map(site=>({site,d:Math.hypot(roverState.x-site.x,roverState.z-site.z)})).sort((a,b)=>a.d-b.d)[0];}
   function interact(){
     if($('mars-map-dialog').open)return;
-    const {site}=nearestSite(),result=interactMars(stage,roverState,site.id);
+    const stageBefore=stage;const {site}=nearestSite(),result=interactMars(stage,roverState,site.id);
     if(!result.ok){onNotify(result.message);return;}
-    stage=result.stage;cargo.visible=stage===1;targetId=missionForStage(stage).target;save();refreshHud();
+    visitedSites.add(site.id);stage=result.stage;cargo.visible=stage===1;if(result.stage!==stageBefore)targetId=missionForStage(stage).target;autosave();refreshHud();
     if(result.depart){onReturnToOrbit();return;}
     radio(result.message);
   }
@@ -198,7 +315,7 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
   const mapClose=()=>{$('mars-map-dialog').close();clearInput();};
   $('mars-map-close').onclick=mapClose;$('mars-open-map').onclick=openMap;$('mars-map-dialog').addEventListener('cancel',cancelMap);
   function cancelMap(e){e.preventDefault();mapClose();}
-  $('mars-reset').onclick=reset;$('mars-view').onclick=()=>{overview=!overview;};$('mars-interact').onclick=interact;
+  $('mars-talk').onclick=talk;$('mars-reset').onclick=reset;$('mars-view').onclick=()=>{overview=!overview;};$('mars-interact').onclick=interact;
   function onPointerDown(e){if(!active||$('mars-map-dialog').open||e.target!==renderer.domElement)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId);}
   function onPointerMove(e){if(!drag||drag.id!==e.pointerId)return;cameraYaw-=(e.clientX-drag.x)*.006;cameraPitch=clamp(cameraPitch+(e.clientY-drag.y)*.004,.12,.9);drag.x=e.clientX;drag.y=e.clientY;overview=false;}
   function onPointerUp(){drag=null;}
@@ -216,7 +333,7 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
     if(e.repeat)return;
     if(e.code==='KeyP'||e.code==='Escape'){e.preventDefault();onPause();return;}
     if(e.code==='KeyM'){openMap();return;}if(e.code==='KeyF'){interact();return;}if(e.code==='KeyR'){reset();return;}
-    if(e.code==='KeyV'){overview=!overview;return;}if(e.code==='KeyC'){cameraYaw=0;cameraPitch=.32;cameraDistance=17;overview=false;return;}
+    if(e.code==='KeyT'){talk();return;}if(e.code==='KeyV'){overview=!overview;return;}if(e.code==='KeyC'){cameraYaw=0;cameraPitch=.32;cameraDistance=17;overview=false;return;}
     keys.add(e.code);
   }
   function keyup(e){keys.delete(e.code);}
@@ -237,7 +354,7 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
   function updateCamera(dt,immediate=false){
     const yaw=roverState.heading+cameraYaw,look=new THREE.Vector3(roverState.x,rover.position.y+2.6,roverState.z);
     let desired;
-    if(overview){desired=new THREE.Vector3(80,420,490);look.set(50,0,-50);camera.fov=55;}
+    if(overview){desired=new THREE.Vector3(200,1450,1480);look.set(100,0,-280);camera.fov=55;}
     else{const offset=new THREE.Vector3(Math.sin(yaw)*cameraDistance*Math.cos(cameraPitch),Math.sin(cameraPitch)*cameraDistance+2.5,Math.cos(yaw)*cameraDistance*Math.cos(cameraPitch));desired=look.clone().add(offset);desired.y=Math.max(desired.y,terrainHeight(desired.x,desired.z)+2.4);camera.fov=62;
       const offsetToCamera=desired.clone().sub(look),steps=Math.ceil(offsetToCamera.length());
       for(let i=3;i<steps;i++){const point=look.clone().addScaledVector(offsetToCamera,i/steps);if(point.y<terrainHeight(point.x,point.z)+16&&collides(point.x,point.z,.5)){desired=look.clone().addScaledVector(offsetToCamera,Math.max(3,i-2)/steps);break;}}
@@ -249,27 +366,34 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
     const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
     const ratio=Math.min(devicePixelRatio,2),w=rect.width,h=rect.height;if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);}
     const ctx=canvas.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);ctx.fillStyle='#1b292c';ctx.fillRect(0,0,w,h);
-    const scale=mini?Math.min(w,h)/790:Math.min((w-60)/850,(h-60)/500),cx=w/2-(mini?70:95)*scale,cy=h/2+(mini?60:45)*scale,xy=(x,z)=>({x:cx+x*scale,y:cy+z*scale});
+    const scale=mini?Math.min(w,h)/850:Math.min((w-90)/2550,(h-80)/2050),cx=w/2-(mini?roverState.x:100)*scale,cy=h/2-(mini?roverState.z:-250)*scale,xy=(x,z)=>({x:cx+x*scale,y:cy+z*scale});
     ctx.strokeStyle='#455552';ctx.lineWidth=mini?2:5;
     for(const road of ROADS){ctx.beginPath();road.forEach(([x,z],i)=>{const p=xy(x,z);if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});ctx.stroke();}
     ctx.fillStyle='#a9aaa060';for(const b of HABITATS){const q=xy(b.x-9,b.z-17);ctx.fillRect(q.x,q.y,18*scale,34*scale);}
     ctx.fillStyle=stage>=2?'#6faaa1':'#425f66';for(const p of solarPoints){const q=xy(p.x-5,p.z-3);ctx.fillRect(q.x,q.y,10*scale,6*scale);}
     ctx.strokeStyle='#d3aa6f';for(const x of [-110,-72,-34]){const q=xy(x-12,-202);ctx.strokeRect(q.x,q.y,24*scale,34*scale);}
+    for(const d of DISTRICTS){ctx.fillStyle='#9daaa133';const q=xy(d.bx-d.hx,d.bz-d.hz);ctx.fillRect(q.x,q.y,d.hx*2*scale,d.hz*2*scale);}
     const target=SITE_BY_ID.get(targetId),a=xy(roverState.x,roverState.z),b=xy(target.x,target.z);ctx.strokeStyle='#f4c67a88';ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);
-    for(const site of SITES){const p=xy(site.x,site.z);ctx.fillStyle=targetId===site.id?'#f7cf89':'#b3cac3';ctx.beginPath();ctx.arc(p.x,p.y,mini?2.5:4,0,Math.PI*2);ctx.fill();if(!mini){ctx.font='10px Arial';ctx.fillText(site.short,p.x+8,p.y-7);}}
+    for(const site of SITES){const p=xy(site.x,site.z);ctx.fillStyle=targetId===site.id?'#f7cf89':'#b3cac3';ctx.beginPath();ctx.arc(p.x,p.y,mini?2.5:4,0,Math.PI*2);ctx.fill();if(!mini){
+      const offsets={workshop:[-95,7],solar:[22,-18],habitat:[24,18],expansion:[-85,-17],overlook:[-92,-12],lander:[-85,32]};
+      const [dx,dy]=offsets[site.id]||[8,-8];ctx.font='10px Arial';
+      if(offsets[site.id]){ctx.strokeStyle='#a5bab666';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+dx+(dx<0?ctx.measureText(site.short).width:0),p.y+dy-4);ctx.stroke();}
+      ctx.fillText(site.short,p.x+dx,p.y+dy);
+    }}
     ctx.save();ctx.translate(a.x,a.y);ctx.rotate(roverState.heading);ctx.fillStyle='#efc789';ctx.beginPath();ctx.moveTo(0,-6);ctx.lineTo(4,4);ctx.lineTo(-4,4);ctx.closePath();ctx.fill();ctx.restore();
     if(!mini){ctx.fillStyle='#adbdba';ctx.font='10px Arial';ctx.fillText('N ↑     /     SERVICE ROADS     /     MARS LOCAL GRID',18,h-18);}
   }
   function refreshHud(){
     const mission=missionForStage(stage),target=SITE_BY_ID.get(targetId),nearest=nearestSite();
-    $('mars-mission-step').textContent=mission.step;$('mars-mission-title').textContent=mission.title;$('mars-mission-detail').textContent=mission.detail;
+    destinationPicker.value=targetId;$('mars-mission-step').textContent=mission.step;$('mars-mission-title').textContent=mission.title;$('mars-mission-detail').textContent=mission.detail;
     $('mars-cargo').textContent=stage===1?'ARRAY CONTROLLER LOADED':'UTILITY ROVER / NOMAD 06';
     $('mars-speed').textContent=String(Math.round(Math.abs(roverState.speed)*3.6));$('mars-gear').textContent=roverState.speed<-.15?'R':Math.abs(roverState.speed)<.1?'P':'D';
     $('mars-power').textContent=stage>=2?'78%':'42%';$('mars-power-label').textContent=stage>=2?'EAST ARRAY ONLINE':'EAST ARRAY ISOLATED';
     $('mars-target-name').textContent=target.name;$('mars-target-distance').textContent=Math.round(Math.hypot(roverState.x-target.x,roverState.z-target.z))+' m';
     $('mars-coordinates').textContent=`${Math.abs(roverState.x).toFixed(0)} ${roverState.x<0?'W':'E'} / ${Math.abs(roverState.z).toFixed(0)} ${roverState.z<0?'N':'S'}`;
     $('mars-view').setAttribute('aria-pressed',String(overview));
-    for(const button of waypointList.children){const site=SITE_BY_ID.get(button.dataset.site);button.classList.toggle('selected',site.id===targetId);button.setAttribute('aria-pressed',String(site.id===targetId));button.querySelector('small').textContent=Math.round(Math.hypot(roverState.x-site.x,roverState.z-site.z))+' m';}
+    for(const button of waypointList.children){const site=SITE_BY_ID.get(button.dataset.site);button.classList.toggle('selected',site.id===targetId);button.classList.toggle('visited',visitedSites.has(site.id));button.setAttribute('aria-pressed',String(site.id===targetId));button.querySelector('small').textContent=Math.round(Math.hypot(roverState.x-site.x,roverState.z-site.z))+' m';}
+    const person=nearbyCrew(roverState,time);$('mars-talk').hidden=!person;$('mars-talk').disabled=Math.abs(roverState.speed)>=1.6;if(person)$('mars-talk').textContent=`Talk to ${person.person.name} · T`;
     const near=nearest.d<21,ready=canInteract(roverState,nearest.site);$('mars-interaction').hidden=!near;
     if(near){$('mars-interaction-title').textContent=nearest.site.name;const action=nearest.site.id==='lander'?'Return to orbit':nearest.site.id==='workshop'&&stage===0?'Collect controller':nearest.site.id==='solar'&&stage===1?'Install controller':nearest.site.id==='expansion'&&stage===2?'Survey site':'Open comms';$('mars-interaction-hint').textContent=ready?'Parked at service beacon.':nearest.d>13?'Pull up to the service beacon.':'Brake to park before interacting.';$('mars-interact').disabled=!ready;$('mars-interact').innerHTML=action+' <kbd>F</kbd>';}
     const q=new THREE.Vector3(target.x,terrainHeight(target.x,target.z)+5,target.z).project(camera),front=new THREE.Vector3(target.x,terrainHeight(target.x,target.z)+5,target.z).sub(camera.position).dot(camera.getWorldDirection(new THREE.Vector3()))>0;
@@ -284,22 +408,22 @@ export function createMarsSurface({renderer,onReturnToOrbit,onPause,onNotify,get
     if(!active||$('mars-map-dialog').open)return;time+=dt;saveTimer+=dt;hudTimer+=dt;
     const throttle=(keys.has('KeyW')||keys.has('ArrowUp')||touch.has('forward')?1:0)-(keys.has('KeyS')||keys.has('ArrowDown')||touch.has('reverse')?1:0);
     const steer=(keys.has('KeyA')||keys.has('ArrowLeft')||touch.has('left')?1:0)-(keys.has('KeyD')||keys.has('ArrowRight')||touch.has('right')?1:0);
-    roverState=stepRover(roverState,{throttle,steer,brake:keys.has('Space')||touch.has('brake')},dt);placeRover(dt);
+    roverState=stepRover(roverState,{throttle,steer,brake:keys.has('Space')||touch.has('brake')},dt);placeRover(dt);updateCrew();
     if(stage>=2)craneArm.rotation.y=Math.sin(time*.07)*.13;
     beacons.forEach(({ring,site})=>{ring.scale.setScalar(1+Math.sin(time*2)*.05);ring.material=site.id===targetId?materials.warm:materials.cyan;});
     messageTimer-=dt;if(messageTimer<=0)$('mars-radio').hidden=true;
-    if(saveTimer>3){save();saveTimer=0;}if(hudTimer>.1){refreshHud();hudTimer=0;}
+    if(saveTimer>3){autosave();saveTimer=0;}if(hudTimer>.1){refreshHud();hudTimer=0;}
     createMotor();if(motorGain&&localAudio){motorGain.gain.setTargetAtTime(!getMuted()?Math.min(.025,Math.abs(roverState.speed)*.002):0,localAudio.currentTime,.1);motor.frequency.setTargetAtTime(35+Math.abs(roverState.speed)*5,localAudio.currentTime,.1);}
   }
   function render(dt){if(!active)return;updateCamera(dt);renderer.render(scene,camera);}
   function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();refreshHud();}
-  function enter(){active=true;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMappingExposure=1.05;$('mars-ui').hidden=false;document.body.classList.add('on-mars');placeRover(0);updateCamera(0,true);for(let i=0;i<dustCount;i++)dustPositions.set([roverState.x,rover.position.y,roverState.z],i*3);refreshHud();radio(stage===0?'MARA / Welcome to Hearth. The east solar bank needs a controller. There’s one waiting at the workshop.':'HEARTH / Welcome back. Your rover and field log are right where you left them.');save();}
+  function enter(){active=true;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMappingExposure=1.05;$('mars-ui').hidden=false;document.body.classList.add('on-mars');placeRover(0);updateCrew();updateCamera(0,true);for(let i=0;i<dustCount;i++)dustPositions.set([roverState.x,rover.position.y,roverState.z],i*3);refreshHud();radio(stage===0?'MARA / Welcome to Hearth. The east solar bank needs a controller. There’s one waiting at the workshop.':'HEARTH / Welcome back. Your rover and field log are right where you left them.');autosave();}
   function exit(){
-    save();active=false;clearInput();if($('mars-map-dialog').open)$('mars-map-dialog').close();$('mars-map-dialog').removeEventListener('cancel',cancelMap);$('mars-ui').hidden=true;document.body.classList.remove('on-mars');renderer.shadowMap.enabled=false;renderer.toneMappingExposure=1.25;
-    for(const id of ['mars-map-close','mars-open-map','mars-reset','mars-view','mars-interact'])$(id).onclick=null;waypointList.replaceChildren();
+    autosave();active=false;clearInput();if($('mars-map-dialog').open)$('mars-map-dialog').close();$('mars-map-dialog').removeEventListener('cancel',cancelMap);$('mars-ui').hidden=true;document.body.classList.remove('on-mars');renderer.shadowMap.enabled=false;renderer.toneMappingExposure=1.25;
+    for(const id of ['mars-map-close','mars-open-map','mars-reset','mars-view','mars-interact','mars-talk','mars-map-destination'])$(id).onclick=null;waypointList.replaceChildren();
     for(const remove of cleanup)remove();if(localAudio){motor?.stop();localAudio.close().catch(()=>{});}
     const geometries=new Set(),mats=new Set(),textures=new Set();scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);const list=Array.isArray(o.material)?o.material:[o.material];for(const m of list){if(!m)continue;mats.add(m);for(const value of Object.values(m))if(value?.isTexture)textures.add(value);}});for(const t of textures)t.dispose();for(const g of geometries)g.dispose();for(const m of mats)m.dispose();sunlight.shadow.map?.dispose();
   }
-  function status(){return {scene:'mars',site:'Hearth Crater',rover:{x:Math.round(roverState.x),z:Math.round(roverState.z),speed:Math.round(roverState.speed*3.6)},mission:missionForStage(stage).title,stage,cargo:stage===1?'array-controller':null,power:stage>=2?78:42,target:targetId,renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};}
-  return {enter,exit,update,render,resize,keydown,keyup,clearInput,reset,openMap,status,get blocked(){return $('mars-map-dialog').open;}};
+  function status(){return {scene:'mars',site:'Hearth Crater',stops:SITES.length,residents:CREW.length,rover:{x:Math.round(roverState.x),z:Math.round(roverState.z),speed:Math.round(roverState.speed*3.6)},mission:missionForStage(stage).title,stage,cargo:stage===1?'array-controller':null,power:stage>=2?78:42,target:targetId,visitedSites:[...visitedSites],renderCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};}
+  return {saveNow:async()=>{await save();await flushSaves();},enter,exit,update,render,resize,keydown,keyup,clearInput,reset,openMap,status,get blocked(){return $('mars-map-dialog').open;}};
 }

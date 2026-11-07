@@ -11,4 +11,4 @@ Earlier planning documents are also available:
 
 The documents describe the intended game and prototype gates.
 
-On the `codex/solar-expedition` branch, [Orbit Run](games/orbit-run/README.md) preserves the playable solar-system rocket prototype as the starting checkpoint for a separate browser-game idea, provisionally titled **The Third Ring**.
+On the `codex/solar-expedition` branch, [Orbit Run](games/orbit-run/README.md) preserves the playable solar-system rocket prototype as the starting checkpoint for a separate shared browser/desktop game, provisionally titled **The Third Ring**.
