@@ -2,7 +2,8 @@
 
 **Branch:** `codex/solar-expedition`  
 **Current gameplay baseline:** `7b47c07` (larger solar system, fuel depots, cruise and route planning)  
-**Current build milestone:** playable Mars settlement, rover and solar-service activity.
+**Current build milestone:** expanded Mars settlement, residents, shared desktop build and verified packaged Mac repair/return loop (`650c43e`).
+**Immediate priority:** investigate player-reported jitter during the beginning of a session; later animation reportedly becomes smooth.
 **Next transport milestone:** lander cinematics and player-controlled orbital docking.
 **Status:** active implementation backlog. Checked Mars items are implemented in the [first playable surface build](MARS-SURFACE.md). Unchecked items remain future work.
 
@@ -494,3 +495,14 @@ This is a long-term product track, not a completed port. See [runtime options, a
 - [ ] BRIDGE-05 — Persist complete expedition/transport state and verify watched, skipped, paused and failed round trips.
 
 This milestone partially advances DESKTOP-02/03/04/06/13/14. Those earlier broad tasks remain unchecked because complete expedition persistence, input abstraction, clean-machine Windows verification and full lifecycle coverage are not finished.
+
+## 18. Startup smoothness — player feedback
+
+The player reports jittery animation at the beginning, followed by smooth animation later. This is an observed symptom, not a confirmed shader, loading or physics diagnosis. Address it before adding more cinematic presentation.
+
+- [ ] STARTUP-01 — Record frame times during a fresh app launch, first Mars entry, first movement and repeat entry. Distinguish scene construction, rendering preparation, resource uploads and simulation/camera timing; identify which phase actually stalls.
+- [ ] STARTUP-02 — Prepare expensive first-use rendering work while the loading cover is fully visible. If scene construction blocks presentation, break the measured heavy work into bounded stages. Do not merely lengthen the fade to conceal an unmeasured problem.
+- [ ] STARTUP-03 — Check frame-clock/accumulator behavior across loading and focus changes; prevent a stale elapsed interval from producing a camera jump or simulation catch-up burst.
+- [ ] STARTUP-04 — Compare fresh and repeat visits in the packaged Mac build, then on Windows. Verify first steering, NPC animation, fades, pause/resume and reduced-motion behavior; record measured results before marking the issue fixed.
+
+After this pass, continue with orbital scene/vehicle/state foundations, authored arrival and launch, manual docking and complete expedition/transport saves. The next planetary chapter follows a repeatable, recoverable Mars round trip.
