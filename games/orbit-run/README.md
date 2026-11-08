@@ -8,6 +8,10 @@ The full game's longer-term goal is an installable desktop release and eventual 
 
 We will evaluate the desktop path before producing the remaining worlds at scale. The [shared desktop prototype](docs/DESKTOP-PROTOTYPE.md) now packages this same game in Electron, with native Mars field logs and offline assets. A Mac ARM64 app has been built; Windows gameplay verification remains pending. Electron is a feasibility baseline while the final production engine decision stays open.
 
+## Next content focus
+
+We are preparing [other destination foundations](docs/DESTINATION-FOUNDATIONS.md), starting with Europa, then Ceres and Mercury. Small local-world blockouts can proceed alongside the queued startup polish, orbital scene, cinematics, manual docking and full expedition saves. These new locations are planned, not yet playable.
+
 ## Mars is now playable
 
 Choose **Explore Mars** for [Hearth Crater](docs/MARS-SURFACE.md): a 4.4 km playable crater region with 16 stops, 19 pressure habitat modules, 12 named EVA residents, a 216-array solar farm and a six-wheel rover. New districts include homes, medical/EVA services, crop houses, water works, oxygen production, freight, science, a shelter, a print yard and remote power. Collect a controller at the workshop, restore the east solar field, and inspect the construction site. Rover position, cargo/activity stage and waypoint are saved locally across visits.

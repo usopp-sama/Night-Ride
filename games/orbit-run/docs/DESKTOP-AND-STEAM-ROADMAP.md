@@ -32,7 +32,7 @@ A desktop release also does not remove memory, frame-time, loading or content-pr
 | F — Steam audience and production | Store presentation/demo planning, onboarding, more destinations and the complete expedition. | Public claims match the build; content is produced through the chosen pipeline and tested regularly as packaged builds. |
 | G — release candidate | Complete, tested desktop game with a supported save/update path and agreed Steam features. | Platform review, release checklist, supported hardware testing and player-facing materials are ready. |
 
-Phases B and early C can run alongside the visit-loop work. Do not interpret this plan as an instruction to rewrite Mars immediately, or to finish eight browser chapters before evaluating desktop feasibility. Store preparation can begin after a convincing slice exists, while production continues; it does not have to wait for the entire game to be finished.
+Phases B and early C can run alongside the visit-loop work. As of 8 November 2026, lightweight Europa/Ceres/Mercury location blockouts may also proceed in parallel; this does not commit us to full chapter production before the stack decision. See [destination foundations](DESTINATION-FOUNDATIONS.md). Do not interpret this plan as an instruction to rewrite Mars immediately, or to finish eight browser chapters before evaluating desktop feasibility. Store preparation can begin after a convincing slice exists, while production continues; it does not have to wait for the entire game to be finished.
 
 ## Runtime and engine choice remains open
 

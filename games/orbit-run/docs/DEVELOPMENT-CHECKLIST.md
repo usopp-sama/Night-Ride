@@ -3,7 +3,8 @@
 **Branch:** `codex/solar-expedition`  
 **Current gameplay baseline:** `7b47c07` (larger solar system, fuel depots, cruise and route planning)  
 **Current build milestone:** expanded Mars settlement, residents, shared desktop build and verified packaged Mac repair/return loop (`650c43e`).
-**Immediate priority:** investigate player-reported jitter during the beginning of a session; later animation reportedly becomes smooth.
+**Next content focus:** lightweight foundations for other destinations, starting with Europa, alongside the remaining Mars work.
+**Tracked polish:** investigate player-reported startup jitter; later animation reportedly becomes smooth.
 **Next transport milestone:** lander cinematics and player-controlled orbital docking.
 **Status:** active implementation backlog. Checked Mars items are implemented in the [first playable surface build](MARS-SURFACE.md). Unchecked items remain future work.
 
@@ -63,7 +64,9 @@ The original planet-impact damage has been replaced by a safe stand-off, and Mar
 | 4 | Return to space | Launch cinematically, regain lander control, manually dock and resume the main ship. |
 | 5 | Persistence and portability | Reload safely at each stable phase; separate platform services, bundle required assets and define input actions. |
 | 6 | Desktop feasibility and stack decision | Test a representative packaged Windows slice, measure it and choose a runtime/engine before scaling up planet content. |
-| 7 | Other destinations and chapters | Use the chosen content pipeline, give each location a distinct activity, then implement its story. |
+| 7 | Full planetary chapter production | Use the chosen content pipeline, give each location a distinct activity, then implement its story. |
+
+As of 8 November 2026, small destination blockouts and reusable scene foundations can begin alongside milestones 3–6. These exploratory locations do not need to wait for completed Mars cinematics or docking. Full chapter production and transport integration still use the gates above. See [destination foundations](DESTINATION-FOUNDATIONS.md).
 
 Scene and vehicle foundations in section 4 support the Mars prototype. We can build and test the surface directly during development before the complete space-to-surface transition exists.
 
@@ -505,4 +508,22 @@ The player reports jittery animation at the beginning, followed by smooth animat
 - [ ] STARTUP-03 — Check frame-clock/accumulator behavior across loading and focus changes; prevent a stale elapsed interval from producing a camera jump or simulation catch-up burst.
 - [ ] STARTUP-04 — Compare fresh and repeat visits in the packaged Mac build, then on Windows. Verify first steering, NPC animation, fades, pause/resume and reduced-motion behavior; record measured results before marking the issue fixed.
 
-After this pass, continue with orbital scene/vehicle/state foundations, authored arrival and launch, manual docking and complete expedition/transport saves. The next planetary chapter follows a repeatable, recoverable Mars round trip.
+Startup polish, orbital foundations, authored arrival/launch, manual docking and complete expedition saves remain on the backlog. Other destination foundations can proceed alongside them; the next complete story chapter still needs reliable travel and recovery.
+
+
+## 19. Other destination foundations — current content focus, 8 November 2026
+
+The player wants some attention on the other worlds now. Start with Europa, then Ceres and Mercury. Build small, distinct, explorable locations before producing their full stories. The [foundation brief](DESTINATION-FOUNDATIONS.md) defines scope and a shared acceptance checklist.
+
+The earlier six-item queue remains tracked: startup smoothness (STARTUP-01–04); orbital scene/main ship/lander (CORE and ORBIT); arrival/launch animations (CINE); manual docking (DOCK); full expedition saves (SAVE); and the Mars-to-Europa lead (MARS-44 and EUROPA). These are pending work, not cancelled requirements or prerequisites for starting every small destination blockout.
+
+- [ ] WORLD-01 — Define the shared destination/site data and scene lifecycle, reusing DATA-01–12. Support moons, dwarf planets, surface sites and orbital ports explicitly.
+- [ ] WORLD-02 — Add an isolated local-preview entry point and a safe return path for each implemented blockout, without requiring a completed chapter or cinematic.
+- [ ] WORLD-03 — Establish per-destination progress namespaces so entering a new location cannot overwrite the Mars field log. Keep unimplemented locations clearly identified in navigation.
+- [ ] WORLD-04 — Start Europa: Jupiter child-destination identity, ice terrain, research station, arrival area, excursion route, a few stops and one scientist interaction. Continue EUROPA-01/02 first; the full recovery mission and transport remain later tasks.
+- [ ] WORLD-05 — Follow with Ceres: a compact mining-cooperative depot, cargo yard and excavation route; distinguish the playable site from the existing Ceres refuelling anchorage.
+- [ ] WORLD-06 — Follow with Mercury: a focused industrial/foundry site, a protected arrival area and maintenance route; reserve fabrication equipment for its later activity.
+- [ ] WORLD-07 — Define short layout briefs for Venus, Earth, Titan, Miranda and Triton using the existing draft chapter roles; avoid building every full location simultaneously.
+- [ ] WORLD-08 — Check each new blockout for valid spawns, usable paths, readable waypoints, an exit, loading/resource cleanup, and repeat visits that preserve Mars progress. Keep desktop and web on the same source files.
+
+A completed foundation is a usable location with its own identity and a reason to explore. It does not imply a complete story, cinematic set, manual docking, global save system or Windows release verification.
