@@ -527,3 +527,19 @@ The earlier six-item queue remains tracked: startup smoothness (STARTUP-01–04)
 - [ ] WORLD-08 — Check each new blockout for valid spawns, usable paths, readable waypoints, an exit, loading/resource cleanup, and repeat visits that preserve Mars progress. Keep desktop and web on the same source files.
 
 A completed foundation is a usable location with its own identity and a reason to explore. It does not imply a complete story, cinematic set, manual docking, global save system or Windows release verification.
+
+
+## 20. Native desktop direction — 8 November 2026
+
+Electron is ruled out for the desktop release. Keep the current browser game as the free online trial/prototype, and preserve the existing wrapper only as a historical test artifact. See [native desktop plan](NATIVE-DESKTOP-PLAN.md). Godot is the recommended engine experiment, not a final engine decision or an implemented port.
+
+- [ ] NATIVE-01 — Evaluate a small Godot Mars/space slice and record handling, visuals, import workflow, frame times, native saves and content-authoring tradeoffs before choosing the production engine.
+- [ ] NATIVE-02 — Extract portable world/site/vehicle/mission definitions and stable progress IDs from renderer-specific JavaScript. Preserve behavior fixtures and explicit units.
+- [ ] NATIVE-03 — Establish portable asset sources and a glTF/GLB import experiment; explicitly account for procedural geometry, materials, collisions and animation that need rebuilding.
+- [ ] NATIVE-04 — Port rover/flight controllers, interaction, native UI and the scene coordinator into the chosen engine; do not assume DOM/Three.js code runs there unchanged.
+- [ ] NATIVE-05 — Implement engine-native saves, input/settings and lifecycle behavior, with a deliberate browser-save transfer decision.
+- [ ] NATIVE-06 — Export and test Windows builds regularly; Mac development/builds do not replace Windows verification.
+- [ ] NATIVE-07 — Once the native approach is proven, make it the primary production implementation. Limit the original web version's scope or validate an engine-exported web trial, rather than maintaining two complete games indefinitely.
+- [ ] NATIVE-08 — Prepare a free online trial and a Coming Soon/wishlist path, then a representative native Steam demo linked to the full game and finally the complete release. Demo and full game should share the native project with explicit content selection.
+
+Early other-world blockouts remain useful for design. Do not finish every chapter in renderer-specific web code before proving the native path. No engine installation, native port, store publication or Steam account change is implied by this planning update.

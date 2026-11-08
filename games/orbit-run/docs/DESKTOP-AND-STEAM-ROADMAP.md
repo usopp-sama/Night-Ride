@@ -1,5 +1,11 @@
 # Desktop game and long-term Steam roadmap
 
+## Desktop direction update — 8 November 2026
+
+The user has ruled out Electron for the desktop release. The existing wrapper is a historical feasibility/playtest artifact, not the production desktop path. Do not extend it into the Steam product or substitute a different webview wrapper by default. The intended audience path is a free online trial, a native desktop Steam demo, and then the complete released game.
+
+The recommended next engine experiment is Godot, with one representative Mars/space slice before selecting the production engine. This is a recommendation, not an approved engine selection or an implemented port. Preserve the current browser prototype for online testing. See the [native desktop development and migration plan](NATIVE-DESKTOP-PLAN.md).
+
 ## Current milestone
 
 7 November 2026: an Electron feasibility baseline now packages the shared game for desktop. Mac ARM64 packaging, a complete packaged Mars repair-and-return playthrough, conversations, quit/relaunch persistence and native field-log creation have been verified. A Windows package recipe and manual CI workflow exist; Windows gameplay, full expedition persistence, controller/settings work and Steam integration remain pending. See [setup, verification and Windows handoff](DESKTOP-PROTOTYPE.md). This does not close the production engine decision.
@@ -36,16 +42,14 @@ Phases B and early C can run alongside the visit-loop work. As of 8 November 202
 
 ## Runtime and engine choice remains open
 
-These are candidates for a bounded evaluation, not four production implementations.
+These are candidates for a bounded evaluation, not parallel production implementations.
 
 | Candidate | Reuse and purpose | Questions to settle with the slice |
 | --- | --- | --- |
-| Electron + the current Three.js game | A direct route to a desktop playtest using the existing JavaScript, scene code and HTML/CSS interface. Electron bundles Chromium and Node.js. | Does this renderer/tooling meet our intended terrain, physics, animation and content needs? Are memory, startup and Steam bridge behavior acceptable? |
-| Tauri + the current game, if there is a measured reason to compare | Another desktop-shell candidate; Windows WebView2/runtime distribution needs explicit testing and an offline installation policy. | Does the webview/runtime/bridge combination behave consistently on target PCs? Do the measured benefits justify a second shell evaluation? |
 | Godot | A candidate game engine with a Windows export pipeline. Treat it as a real port of scenes/UI/gameplay integration. | Are terrain, vehicle, animation and scene-authoring workflows a good match for our scale and team? What can move as data/assets, and what must be rebuilt? |
 | Unreal Engine | A candidate for a game-engine production pipeline with packaged desktop builds. Treat it as a real port, not an automatic export of this web project. | Does the desired visual/physics/content scope justify its production/build workflow and resource costs? Can we package and iterate efficiently on our machines? |
 
-Recommended first experiment: preserve a lightweight desktop version of the existing slice to establish a baseline. If the larger vision demands engine capabilities that would be expensive to recreate, build one representative engine comparison early. Choose one engine for that comparison based on the intended art/physics requirements; do not start two full ports in parallel.
+Recommended next experiment: build one small Godot slice covering Mars terrain/rover interaction, flight, scene changes and saves; then extend it through the planned orbital/docking loop. Compare its behavior and content workflow with the preserved prototype, and measure on Windows before choosing the production engine. Do not start two full engine ports in parallel.
 
 Measure the same work in each candidate: drive the Mars route and solar field, change scenes, run the launch/return staging, perform manual docking, load/save, use a controller and quit/restart offline. The current direct surface/orbit handoff is not an adequate substitute for testing the later docking/cinematic load.
 

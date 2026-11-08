@@ -4,9 +4,9 @@
 
 ## Long-term target: desktop and Steam
 
-The full game's longer-term goal is an installable desktop release and eventual Steam launch. The current browser build remains our working prototype and a possible demo. The [desktop and Steam roadmap](docs/DESKTOP-AND-STEAM-ROADMAP.md) adds platform/save/input foundations, an early Windows desktop feasibility milestone, a measured runtime/engine decision, and release preparation. Windows-first is the planning default; the final stack and release date are still open.
+The full game's longer-term goal is an installable desktop release and eventual Steam launch. The user has ruled out Electron for that release: the [native desktop plan](docs/NATIVE-DESKTOP-PLAN.md) proposes a focused Godot port experiment, with the browser retained as a free online trial. The production engine is not yet selected. The current browser build remains our working prototype and a possible demo. The [desktop and Steam roadmap](docs/DESKTOP-AND-STEAM-ROADMAP.md) adds platform/save/input foundations, an early Windows desktop feasibility milestone, a measured runtime/engine decision, and release preparation. Windows-first is the planning default; the final stack and release date are still open.
 
-We will evaluate the desktop path before producing the remaining worlds at scale. The [shared desktop prototype](docs/DESKTOP-PROTOTYPE.md) now packages this same game in Electron, with native Mars field logs and offline assets. A Mac ARM64 app has been built; Windows gameplay verification remains pending. Electron is a feasibility baseline while the final production engine decision stays open.
+We will evaluate the desktop path before producing the remaining worlds at scale. The [shared desktop prototype](docs/DESKTOP-PROTOTYPE.md) now packages this same game in Electron, with native Mars field logs and offline assets. A Mac ARM64 app has been built; Windows gameplay verification remains pending. That Electron build is retained only as a historical playtest baseline; it is not the Steam release path.
 
 ## Next content focus
 

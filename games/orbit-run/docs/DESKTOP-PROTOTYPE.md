@@ -1,5 +1,7 @@
 # Shared browser and desktop prototype
 
+**Historical playtest baseline:** as of 8 November 2026, the user has ruled out Electron for the desktop release. These instructions preserve the already-built experiment; they are not the production/Steam plan. See [native desktop development](NATIVE-DESKTOP-PLAN.md).
+
 Updated 7 November 2026. Electron is the current **desktop feasibility baseline**, not a commitment that it will be the final Steam runtime. There is no duplicate game implementation to synchronize: the desktop app packages the same `dist` directory that the web server serves.
 
 ## What is shared
