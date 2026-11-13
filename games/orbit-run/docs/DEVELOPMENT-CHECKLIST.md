@@ -543,3 +543,8 @@ Electron is ruled out for the desktop release. Keep the current browser game as 
 - [ ] NATIVE-08 — Prepare a free online trial and a Coming Soon/wishlist path, then a representative native Steam demo linked to the full game and finally the complete release. Demo and full game should share the native project with explicit content selection.
 
 Early other-world blockouts remain useful for design. Do not finish every chapter in renderer-specific web code before proving the native path. No engine installation, native port, store publication or Steam account change is implied by this planning update.
+
+
+## 21. Forward design set — 13 November 2026
+
+The full design of the finished game now lives in [docs/design](design/00-README.md). It settles several items this checklist left open (ORBIT-01–06 scale and pacing, DECISION-03/04/05/06, the story in section 11) and sets milestone order and gates in its [production roadmap](design/10-PRODUCTION-ROADMAP.md). This checklist stays the task ledger: tick items here as each design milestone's gate proves them. No item above is marked complete by the existence of the design.

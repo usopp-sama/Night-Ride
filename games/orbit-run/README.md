@@ -8,6 +8,10 @@ The full game's longer-term goal is an installable desktop release and eventual 
 
 We will evaluate the desktop path before producing the remaining worlds at scale. The [shared desktop prototype](docs/DESKTOP-PROTOTYPE.md) now packages this same game in Electron, with native Mars field logs and offline assets. A Mac ARM64 app has been built; Windows gameplay verification remains pending. That Electron build is retained only as a historical playtest baseline; it is not the Steam release path.
 
+## Forward design: The Third Ring
+
+The complete forward design for the finished game — vision, story, every system, every destination, presentation, controls, architecture, production order and an AI build protocol — is in [docs/design](docs/design/00-README.md). It describes the intended game, not the current build; the documents listed below remain the record of what exists today. Where the two disagree about the future, the design set wins.
+
 ## Next content focus
 
 We are preparing [other destination foundations](docs/DESTINATION-FOUNDATIONS.md), starting with Europa, then Ceres and Mercury. Small local-world blockouts can proceed alongside the queued startup polish, orbital scene, cinematics, manual docking and full expedition saves. These new locations are planned, not yet playable.
